@@ -1345,7 +1345,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.1</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.2</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -4006,7 +4006,7 @@ const rideTitle = rd => { const r = rd.routeName.replace(/ · [\d.]+ km.*$/, '')
 const stravaDesc = (rd, st) => [
   `${(st.dist / 1000).toFixed(1).replace('.', ',')} km · ${fmtT(st.timer)} · NP ${Math.round(st.np)} W`,
   st.pm ? '\n' + pmNote(st) : '',
-  '\nIndoor gefahren mit kurbeln.com',
+  '\nIndoor gefahren mit https://www.kurbeln.com',
 ].filter(Boolean).join('\n');
 async function stravaUpload(rd, opt = {}) {
   const tok = await stravaAccess(), st = stats(rd), fname = fileBase(rd) + (opt.uniq ? '_' + Date.now().toString(36) : '') + '.fit';

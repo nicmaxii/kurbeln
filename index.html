@@ -1345,7 +1345,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.2</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.3</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -4012,7 +4012,7 @@ async function stravaUpload(rd, opt = {}) {
   const tok = await stravaAccess(), st = stats(rd), fname = fileBase(rd) + (opt.uniq ? '_' + Date.now().toString(36) : '') + '.fit';
   const fd = new FormData();
   fd.append('file', new Blob([buildFIT(rd, false, opt)], { type: 'application/octet-stream' }), fname);
-  fd.append('data_type', 'fit'); fd.append('name', rideTitle(rd)); fd.append('trainer', '1'); fd.append('external_id', fname);
+  fd.append('data_type', 'fit'); fd.append('name', rideTitle(rd)); fd.append('trainer', rideRoute(rd) ? '0' : '1'); // mit GPS kein Trainer-Haken – sonst blendet Strava die Karte aus fd.append('external_id', fname);
   fd.append('description', stravaDesc(rd, st));
   const r = await fetch('https://www.strava.com/api/v3/uploads', { method: 'POST', headers: { Authorization: 'Bearer ' + tok }, body: fd });
   let j = await r.json().catch(() => ({}));
@@ -4024,7 +4024,7 @@ async function stravaUpload(rd, opt = {}) {
   if (j.error) throw new Error(j.error);
   if (!j.activity_id) return { pending: true };
   // mit Karte immer als virtuelle Fahrt – sonst würde Strava echte Segmente werten
-  if (strava.virtual || rideRoute(rd)) { try { await fetch('https://www.strava.com/api/v3/activities/' + j.activity_id, { method: 'PUT', headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify({ sport_type: 'VirtualRide', trainer: true }) }); } catch (e) {} }
+  if (strava.virtual || rideRoute(rd)) { try { await fetch('https://www.strava.com/api/v3/activities/' + j.activity_id, { method: 'PUT', headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify({ sport_type: 'VirtualRide', trainer: !rideRoute(rd) }) }); } catch (e) {} }
   return { id: j.activity_id };
 }
 async function doStravaUpload() {

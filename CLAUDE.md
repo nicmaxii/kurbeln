@@ -56,7 +56,7 @@ Playwright (Chromium) gegen die lokale Datei oder `python3 -m http.server`:
 - Web Bluetooth braucht https: Seite leitet http://…kurbeln.com automatisch auf https um; `btOk()` erklärt fehlendes Bluetooth (unsicher vs. falscher Browser). GitHub Pages: „Enforce HTTPS“ muss an sein.
 - Technische Kennungen bleiben `kurbel` (localStorage, IndexedDB, Strava-`state`, `KurbelLanding`).
 
-- Powermeter vs. Trainer: große Abweichung bei Max, PowerMatch klappte nicht → jetzt Standard „Trainer steuert, Powermeter läuft mit“. Später: Powermeter zeigt halbe Watt (99 W) – Diagnose: `parseCPS` liest L/R-Verteilung (`live.pmBal`), Anzeige im Connections-Status, Warnung bei nur einer messenden Seite.
+- Powermeter vs. Trainer: große Abweichung bei Max, PowerMatch klappte nicht → jetzt Standard „Trainer steuert, Powermeter läuft mit“. Später: Powermeter zeigt halbe Watt (99 W) – Diagnose: `parseCPS` liest L/R-Verteilung (`live.pmBal`), Anzeige im Connections-Status, Warnung bei nur einer messenden Seite. Max hat einen einseitigen Powermeter → Schalter „Einseitiger Powermeter (Wert ×2)“ (`settings.pmX2`, verdoppelt in `onPMData`), automatischer Hinweis wenn PM 20 s lang 40–60 % des Trainers misst.
 - Street View: bei Max noch nicht gelaufen – genaue Meldung steht aus (Schlüssel gilt pro Adresse: gehostet und lokale Datei getrennt eintragen).
 - Kalibrierung und FE-C/Wahoo-Steuerung nur mit Mocks getestet.
 - Mögliche weitere Strecken: Flandern-Rundfahrt, Champs-Élysées.

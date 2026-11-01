@@ -1348,7 +1348,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.4</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.5</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1405,6 +1405,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         </div>
         <div class="srow"><span>PowerMatch <span class="i" data-tip="Aus (empfohlen): Der Trainer steuert das Workout, der Powermeter wird nebenher aufgezeichnet – beide Wattzahlen siehst du während der Fahrt und in der Strava-Beschreibung. An: Der Powermeter gibt die Wattzahl vor und der Trainer wird nachgeregelt.">i</span></span><label class="sw"><input type="checkbox" id="cPM"></label></div>
         <div class="srow"><span>Gegen eigene Bestzeit fahren (Geist) <span class="i" data-tip="Deine schnellste frühere Fahrt auf dieser Strecke fährt als grauer Punkt mit. Rechts oben siehst du, wie viele Sekunden du vorne oder hinten liegst.">i</span></span><label class="sw"><input type="checkbox" id="cGhost"></label></div>
+        <div class="srow"><span>Einseitiger Powermeter (Wert ×2) <span class="i" data-tip="Für Powermeter, die nur ein Bein messen (z. B. linke Kurbel oder ein Pedal) und dabei die halbe Leistung senden. Kurbeln verdoppelt dann den Wert – wie es andere Apps automatisch tun.">i</span></span><label class="sw"><input type="checkbox" id="cPMx2"></label></div>
       </section>
 
       <details class="sec more">
@@ -1964,9 +1965,10 @@ function onTrainerData(r) {
 }
 function onPMData(r) {
   live.pmLast = Date.now();
+  if (r.power != null && settings.pmX2) r.power *= 2; // einseitiger Powermeter, der nur eine Seite sendet
   if (r.power != null) live.pmRaw = Math.max(0, r.power);
   if (r.bal != null) { live.pmBal = r.bal; live.pmBalLeft = r.balLeft; // ein Seitenwert von 0 oder 100 % bei Last = nur eine Seite misst
-    if (live.pmRaw > 60 && (r.bal < 3 || r.bal > 97) && !live.pmBalWarned) { live.pmBalWarned = true; toast('Powermeter: Nur eine Pedalseite liefert Werte (Verteilung ' + Math.round(r.bal) + ' / ' + Math.round(100 - r.bal) + '). Batterie und Verbindung der anderen Seite prüfen – sonst misst er nur die halbe Leistung.', 12000); } }
+    if (live.pmRaw > 60 && (r.bal < 3 || r.bal > 97) && !live.pmBalWarned && !settings.pmX2) { live.pmBalWarned = true; toast('Powermeter: Nur eine Seite liefert Werte. Bei einem zweiseitigen Powermeter Batterie und Verbindung der anderen Seite prüfen. Bei einem einseitigen im Menü unter „Über dich“ „Einseitiger Powermeter (Wert ×2)“ einschalten.', 12000); } }
   if (!settings.powerMatch) return;
   if (r.power != null) { live.pmRaw = Math.max(0, r.power); live.power = live.pmRaw; live.lastData = Date.now(); }
   if (r.cadence != null) { live.cadence = r.cadence; live.pmHasCad = true; }
@@ -2347,6 +2349,11 @@ function tick() {
   powerHist.push([Date.now(), live.power]); while (powerHist.length && powerHist[0][0] < Date.now() - 3000) powerHist.shift();
   trainerHist.push([Date.now(), Date.now() - live.trainerLast < 2000 ? live.trainerPower : 0]); while (trainerHist.length && trainerHist[0][0] < Date.now() - 3000) trainerHist.shift();
   pmHist.push([Date.now(), pmFresh() ? live.pmRaw : 0]); while (pmHist.length && pmHist[0][0] < Date.now() - 3000) pmHist.shift();
+  if (pmFresh() && !settings.pmX2 && !live.pmHalfWarned && Date.now() - live.trainerLast < 2000) {
+    const tA = avgHist(trainerHist), pA = avgHist(pmHist), q = tA > 90 ? pA / tA : 0;
+    if (q > .4 && q < .6) { live.pmHalfSince ||= Date.now(); if (Date.now() - live.pmHalfSince > 20000) { live.pmHalfWarned = true; toast('Dein Powermeter misst seit 20 s etwa die Hälfte des Trainers (' + Math.round(pA) + ' statt ' + Math.round(tA) + ' W). Ist es ein einseitiger Powermeter? Dann im Menü unter „Über dich“ „Einseitiger Powermeter (Wert ×2)“ einschalten.', 15000); } }
+    else live.pmHalfSince = 0;
+  }
   checkPmDev();
   if (ride.state === 'running' && !ride.started) { // warten auf die ersten Wattwerte
     if (live.power >= 10 && Date.now() - live.lastData < 2000) {
@@ -3786,7 +3793,7 @@ function fillSelects() {
 }
 function loadSetup() {
   $('#iFtp').value = settings.ftp; $('#iWeight').value = settings.weight; $('#iDiff').value = settings.difficulty;
-  $('#iManual').value = settings.manualW; $('#cErg').checked = settings.erg; $('#cGhost').checked = settings.ghost !== false; $('#cPM').checked = settings.powerMatch;
+  $('#iManual').value = settings.manualW; $('#cErg').checked = settings.erg; $('#cGhost').checked = settings.ghost !== false; $('#cPMx2').checked = !!settings.pmX2; $('#cPM').checked = settings.powerMatch;
   $('#iGKey').value = settings.gKey; $('#iSvEvery').value = settings.svEvery; $('#iSvLimit').value = settings.svLimit; $('#cSV').checked = settings.svOn; svInfoUpd();
   $('#selMap').innerHTML = Object.entries(TILES).map(([k, t]) => `<option value="${k}">${t.name}</option>`).join(''); $('#selMap').value = settings.mapStyle;
   fillSelects(); refreshSetupInfo();
@@ -3796,7 +3803,7 @@ function readSetup() {
   settings.weight = clamp(+$('#iWeight').value || 75, 30, 200);
   settings.difficulty = clamp(+$('#iDiff').value || 0, 0, 100);
   settings.manualW = clamp(+$('#iManual').value || 150, 30, 1500);
-  settings.erg = $('#cErg').checked; settings.powerMatch = $('#cPM').checked; settings.ghost = $('#cGhost').checked;
+  settings.erg = $('#cErg').checked; settings.powerMatch = $('#cPM').checked; settings.ghost = $('#cGhost').checked; settings.pmX2 = $('#cPMx2').checked;
   settings.routeId = $('#selRoute').value || settings.routeId; settings.workoutId = $('#selWorkout').value || 'none';
   route = routeById(settings.routeId); saveSettings();
 }

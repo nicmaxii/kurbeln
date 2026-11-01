@@ -1348,7 +1348,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.9</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.0</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1540,7 +1540,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <button id="btnStravaCfg" title="Strava-Verbindung einrichten">Strava</button>
         <button id="btnTcx">TCX speichern</button>
         <button id="btnFit">FIT speichern</button>
-        <button id="btnGarmin" title="FIT-Datei, für die Garmin Connect Belastung, Trainingseffekt und Erholungszeit berechnet">Für Garmin speichern</button>
+        <button id="btnGarmin" title="FIT-Datei als Garmin Edge: Garmin Connect berechnet Belastung, Trainingseffekt und Erholungszeit">Für Garmin speichern</button>
+        <button id="btnGarminZ" title="Gleiche FIT-Datei, aber mit Zwift als Absender – zum Ausprobieren, ob Garmin damit auch den VO2max aktualisiert">Garmin (als Zwift)</button>
         <button id="btnShareImg" title="Bild mit Strecke, Werten und Leistungskurve – zum Hinzufügen bei Strava oder Instagram">Bild für Strava</button>
         <button class="primary" id="btnStravaUp">Strava Upload</button>
         <button id="btnClose">Schließen</button>
@@ -3181,7 +3182,7 @@ function buildFIT(rd, asGarmin, opt = {}) { // opt.uniq: neue Seriennummer/Erste
   const S = rd.samples, st = stats(rd), FE = 631065600, ts = ms => Math.round(ms / 1000) - FE + (opt.shift || 0);
   const serial = opt.uniq ? (Math.random() * 4e9 >>> 0) || 1 : asGarmin ? 3462026101 : 20261015, created = opt.uniq ? Math.round(Date.now() / 1000) - FE : null;
   const start = ts(S[0][0]), end = ts(S[S.length - 1][0]), w = new FitWriter();
-  w.def(0, 0, [[0, 1, 0], [1, 2, 0x84], [2, 2, 0x84], [3, 4, 0x8c], [4, 4, 0x86]]); w.data(0, asGarmin ? [4, 1, 3121, serial, created ?? start] : [4, 255, 1, serial, created ?? start]); // 1 = Garmin, 3121 = Edge 530
+  w.def(0, 0, [[0, 1, 0], [1, 2, 0x84], [2, 2, 0x84], [3, 4, 0x8c], [4, 4, 0x86]]); w.data(0, asGarmin === 'zwift' ? [4, 260, 0, serial, created ?? start] : asGarmin ? [4, 1, 3121, serial, created ?? start] : [4, 255, 1, serial, created ?? start]); // 1 = Garmin, 3121 = Edge 530; 260 = Zwift (Test für VO2max bei Garmin)
   w.def(1, 21, [[253, 4, 0x86], [0, 1, 0], [1, 1, 0]]); w.data(1, [start, 0, 0]);
   const gr = rideRoute(rd), semi = deg => deg * 2147483648 / 180; // Strecke mit Koordinaten → Karte bei Strava/Garmin
   const hasPM = S.some(s => s[7] != null); // Powermeter-Watt als Entwicklerfeld „Powermeter Power“ (intervals.icu, WKO, GoldenCheetah lesen es)
@@ -4189,10 +4190,12 @@ $('#btnStop').onclick = stopRide;
 $('#btnSkip').onclick = () => { const wo = ride.workout; if (!wo || wo.manual || ride.woDone) return; const sa = segAt(wo, ride.elapsed + ride.wSkip); if (sa) { ride.wSkip += sa.rem + 0.01; controlTrainer(true); } };
 $('#bUp').onclick = () => adjust(1); $('#bDown').onclick = () => adjust(-1);
 $('#rDiff').oninput = e => { settings.difficulty = +e.target.value; $('#diffLbl').textContent = settings.difficulty + ' %'; $('#iDiff').value = settings.difficulty; saveSettings(); };
-$('#btnGarmin').onclick = () => {
+$('#btnGarminZ').onclick = () => garminExport('zwift');
+$('#btnGarmin').onclick = () => garminExport(true);
+function garminExport(kind) {
   if (!summaryRide?.samples.length) return toast('Keine Daten');
   const hr = summaryRide.samples.filter(s => s[3]).length / summaryRide.samples.length;
-  download(fileBase(summaryRide) + '_garmin.fit', buildFIT(summaryRide, true), 'application/octet-stream'); markExported();
+  download(fileBase(summaryRide) + (kind === 'zwift' ? '_zwift' : '_garmin') + '.fit', buildFIT(summaryRide, kind), 'application/octet-stream'); markExported();
   $('#stravaMsg').innerHTML = `<div class="${hr < .8 ? 'warnbox' : 'okbox'}">${hr < .8 ? 'In dieser Fahrt fehlen Pulsdaten – ohne Puls berechnet Garmin keine Belastung. ' : ''}Jetzt auf <a href="https://connect.garmin.com/modern/import-data" target="_blank" style="color:inherit"><b>connect.garmin.com → Daten importieren</b></a> die Datei hochladen, danach die Uhr <b>zweimal</b> mit der Connect-App synchronisieren. Läuft bei dir „Garmin → Strava“, lade die Fahrt nicht zusätzlich aus Kurbeln zu Strava hoch, sonst ist sie doppelt da.</div>`;
 };
 // ---------- Zusammenfassungsbild (Strava erlaubt keine Foto-Uploads über die Schnittstelle – Bild wird gespeichert und von Hand hinzugefügt) ----------

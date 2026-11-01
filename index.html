@@ -1348,7 +1348,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.6</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.7</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2302,7 +2302,7 @@ function stopRide() {
 }
 let stopArmed = 0;
 function confirmStop() { if (Date.now() - stopArmed < 4000) return true; stopArmed = Date.now(); toast('Nochmal „Beenden“ drücken, um die Fahrt abzuschließen.'); return false; }
-function rideRecord() { return { start: ride.startTs, routeName: ride.route.name, routeId: ride.route.id, workoutName: ride.workout?.name || null, woId: ride.workout?.id || null, tgt: ride.tgt, ramp: !!ride.workout?.ramp, ftp: settings.ftp, samples: ride.samples, timer: ride.elapsed, done: true }; }
+function rideRecord() { return { start: ride.startTs, routeName: ride.route.name, routeId: ride.route.id, workoutName: ride.workout?.name || null, woId: ride.workout?.id || null, tgt: ride.tgt, ramp: !!ride.workout?.ramp, ftp: settings.ftp, samples: ride.samples, timer: ride.elapsed, pmX2: !!settings.pmX2, done: true }; }
 
 function currentTarget() {
   const wo = ride.workout; if (!wo || ride.woDone) return null;
@@ -3100,9 +3100,11 @@ function frame() {
 function bestAvg(P, n) { if (P.length < n) return null; let s = 0, b = 0; for (let i = 0; i < P.length; i++) { s += P[i]; if (i >= n) s -= P[i - n]; if (i >= n - 1) b = Math.max(b, s / n); } return Math.round(b); }
 function npOf(P) { if (P.length < 30) return 0; const r = []; let s = 0; for (let i = 0; i < P.length; i++) { s += P[i]; if (i >= 30) s -= P[i - 30]; if (i >= 29) r.push(Math.pow(s / 30, 4)); } return Math.pow(r.reduce((a, b) => a + b, 0) / r.length, .25); }
 // Powermeter parallel zum Trainer aufgezeichnet (Index 7): Vergleich nur über Sekunden, in denen beide Werte da sind
+// Fahrten von vor dem Schalter „Einseitig ×2“ haben kein pmX2-Merkmal: dann gilt die aktuelle Einstellung (Werte wurden roh gespeichert)
+const pmFactor = rd => rd.pmX2 !== undefined ? 1 : settings.pmX2 ? 2 : 1;
 function pmStats(rd) {
   const S = (rd.samples || []).filter(s => s[7] != null); if (S.length < 30) return null;
-  const T = S.map(s => s[1]), M = S.map(s => s[7]), avg = a => a.reduce((x, y) => x + y, 0) / a.length;
+  const f = pmFactor(rd), T = S.map(s => s[1]), M = S.map(s => s[7] * f), avg = a => a.reduce((x, y) => x + y, 0) / a.length;
   return { n: S.length, tAvg: avg(T), tNp: npOf(T), pAvg: avg(M), pNp: npOf(M) };
 }
 const pmNote = st => { const p = st.pm; if (!p) return '';
@@ -3145,7 +3147,7 @@ function drawSummaryChart(rd) {
   const sm = S.map((s, i) => { let a = 0, k = 0; for (let j = Math.max(0, i - 4); j <= i; j++) { a += S[j][1]; k++; } return a / k; });
   line((s, i) => sm[i], maxP, ACC());
   if (S.some(s => s[3])) line(s => s[3], 220, '#9a9a94aa');
-  if (S.some(s => s[7] != null)) { const sp = S.map((s, i) => { let a = 0, k = 0; for (let j = Math.max(0, i - 4); j <= i; j++) { a += S[j][7] || 0; k++; } return a / k; }); line((s, i) => sp[i], maxP, '#ffffffaa'); }
+  if (S.some(s => s[7] != null)) { const sp = S.map((s, i) => { let a = 0, k = 0; for (let j = Math.max(0, i - 4); j <= i; j++) { a += (S[j][7] || 0) * pmFactor(rd); k++; } return a / k; }); line((s, i) => sp[i], maxP, '#ffffffaa'); }
 }
 class FitWriter {
   constructor() { this.b = []; this.defs = {}; this.devs = {}; }
@@ -3188,7 +3190,7 @@ function buildFIT(rd, asGarmin, opt = {}) { // opt.uniq: neue Seriennummer/Erste
     w.def(7, 206, [[0, 1, 0x02], [1, 1, 0x02], [2, 1, 0x02], [3, 18, 0x07], [8, 6, 0x07]]); w.data(7, [0, 0, 0x84, 'Powermeter Power', 'watts']);
   }
   w.def(2, 20, [[253, 4, 0x86], [0, 4, 0x85], [1, 4, 0x85], [7, 2, 0x84], [4, 1, 2], [3, 1, 2], [6, 2, 0x84], [5, 4, 0x86], [2, 2, 0x84]], hasPM ? [[0, 2, 0]] : []);
-  S.forEach(s => { const ll = gr ? latLonAt(gr, s[5]) : null; w.data(2, [ts(s[0]), ll ? semi(ll[0]) : null, ll ? semi(ll[1]) : null, s[1], s[2], s[3] || null, s[4] * 1000, s[5] * 100, (s[6] + 500) * 5, ...(hasPM ? [s[7]] : [])]); });
+  S.forEach(s => { const ll = gr ? latLonAt(gr, s[5]) : null; w.data(2, [ts(s[0]), ll ? semi(ll[0]) : null, ll ? semi(ll[1]) : null, s[1], s[2], s[3] || null, s[4] * 1000, s[5] * 100, (s[6] + 500) * 5, ...(hasPM ? [s[7] == null ? null : s[7] * pmFactor(rd)] : [])]); });
   w.data(1, [end, 0, 4]);
   const elapsed = (end - start + 1) * 1000, timer = st.timer * 1000;
   w.def(3, 19, [[253, 4, 0x86], [2, 4, 0x86], [7, 4, 0x86], [8, 4, 0x86], [9, 4, 0x86], [0, 1, 0], [1, 1, 0], [19, 2, 0x84], [20, 2, 0x84], [15, 1, 2], [16, 1, 2], [17, 1, 2], [13, 2, 0x84], [14, 2, 0x84]]);
@@ -4210,7 +4212,7 @@ async function buildShareImage(rd) {
   g.fillStyle = TX; g.font = `800 ${title.length > 18 ? 64 : 84}px ${UI}`; g.fillText(title, pad, 250, W - 2 * pad);
   if (rd.workoutName) { g.fillStyle = ACC; g.font = `500 34px ${UI}`; g.fillText(rd.workoutName, pad, 302, W - 2 * pad); }
   // Strecke
-  const mapTop = 350, mapH = 430;
+  const mapTop = 340, mapH = 400;
   if (route) {
     const n = route.lat.length, lo = route.lon.map((x, i) => x * Math.cos(route.lat[i] * Math.PI / 180));
     const minX = Math.min(...lo), maxX = Math.max(...lo), minY = Math.min(...route.lat), maxY = Math.max(...route.lat);
@@ -4225,7 +4227,7 @@ async function buildShareImage(rd) {
   // Werte
   const tiles = [['Distanz', (st.dist / 1000).toFixed(1).replace('.', ','), 'km'], ['Zeit', fmtT(st.timer), ''], ['Ø Leistung', Math.round(st.avgP), 'W'], ['NP', Math.round(st.np), 'W'],
     ['Höhenmeter', Math.round(st.asc), 'm'], ['TSS', Math.round(st.tss), ''], [st.avgHr ? 'Ø Puls' : 'Kalorien', st.avgHr ? Math.round(st.avgHr) : Math.round(st.kj), st.avgHr ? 'bpm' : 'kcal'], ['Max. Leistung', st.maxP, 'W']];
-  const tw = (W - 2 * pad - 3 * 16) / 4, ty = 820;
+  const tw = (W - 2 * pad - 3 * 16) / 4, ty = 780;
   tiles.forEach(([l, v, u], i) => {
     const x = pad + (i % 4) * (tw + 16), y = ty + Math.floor(i / 4) * 128;
     g.fillStyle = '#1e1e21'; g.beginPath(); g.roundRect(x, y, tw, 112, 18); g.fill();
@@ -4233,19 +4235,36 @@ async function buildShareImage(rd) {
     g.fillStyle = TX; g.font = `700 44px ${MONO}`; g.fillText(String(v), x + 20, y + 90);
     if (u) { const vw = g.measureText(String(v)).width; g.fillStyle = TX2; g.font = `400 20px ${MONO}`; g.fillText(u, x + 26 + vw, y + 90); }
   });
-  // Leistungskurve mit Höhenprofil
-  const cy = 1090, ch = 170, cx = pad, cw = W - 2 * pad;
+  // Verlauf: Workout-Ablauf (Zonen-Blöcke) bzw. Höhenprofil, darüber Watt (Lime) und Puls (Weiß)
+  const cy = 1080, ch = 180, cx = pad, cw = W - 2 * pad;
   if (S.length > 2) {
-    const N = Math.min(S.length, 600), at = k => S[Math.floor(k / (N - 1) * (S.length - 1))];
-    const eMin = Math.min(...S.map(s => s[6])), eMax = Math.max(...S.map(s => s[6])) + 1;
-    g.fillStyle = 'rgba(242,242,238,.08)'; g.beginPath(); g.moveTo(cx, cy + ch);
-    for (let k = 0; k < N; k++) g.lineTo(cx + k / (N - 1) * cw, cy + ch - (at(k)[6] - eMin) / (eMax - eMin) * ch * .55);
-    g.lineTo(cx + cw, cy + ch); g.fill();
+    const N = Math.min(S.length, 600), idx = k => Math.floor(k / (N - 1) * (S.length - 1)), at = k => S[idx(k)], X = k => cx + k / (N - 1) * cw;
+    const T = (rd.tgt || []).map(v => typeof v === 'number' ? v : null), hasWo = T.filter(v => v).length > S.length * .3;
     const sm = []; for (let k = 0; k < N; k++) { let a = 0, q = 0; for (let j = Math.max(0, k - 3); j <= k; j++) { a += at(j)[1]; q++; } sm.push(a / q); }
-    const pMax = Math.max(st.np * 1.6, ...sm, 100);
-    const grad = g.createLinearGradient(0, cy, 0, cy + ch); grad.addColorStop(0, 'rgba(237,255,154,.55)'); grad.addColorStop(1, 'rgba(237,255,154,.03)');
-    g.fillStyle = grad; g.beginPath(); g.moveTo(cx, cy + ch); sm.forEach((v, k) => g.lineTo(cx + k / (N - 1) * cw, cy + ch - v / pMax * ch)); g.lineTo(cx + cw, cy + ch); g.fill();
-    g.strokeStyle = ACC; g.lineWidth = 3; g.beginPath(); sm.forEach((v, k) => { const x = cx + k / (N - 1) * cw, y = cy + ch - v / pMax * ch; k ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    const pMax = Math.max(st.np * 1.5, ...sm, ...T.filter(Boolean).map(v => v * 1.15), 100), Y = v => cy + ch - Math.min(v, pMax) / pMax * ch;
+    if (hasWo) { // Workout-Ablauf als Blöcke in Zonenfarben
+      g.globalAlpha = .55; // pro Sekundenspalte eine Fläche, zusammengefasst als Pfad je Farbe – keine Streifen durch Überlappung
+      const byCol = {}; for (let k = 0; k < N - 1; k++) { const tg = T[idx(k)]; if (!tg) continue; const c = zoneColor(tg / (rd.ftp || settings.ftp)); (byCol[c] ||= []).push([X(k), X(k + 1), Y(tg)]); }
+      for (const c in byCol) { g.fillStyle = c; g.beginPath(); byCol[c].forEach(([x0, x1, y]) => g.rect(Math.floor(x0), y, Math.ceil(x1) - Math.floor(x0), cy + ch - y)); g.fill('nonzero'); }
+      g.globalAlpha = 1;
+    } else { // freie Fahrt: Höhenprofil
+      const eMin = Math.min(...S.map(s => s[6])), eMax = Math.max(...S.map(s => s[6])) + 1;
+      g.fillStyle = 'rgba(242,242,238,.08)'; g.beginPath(); g.moveTo(cx, cy + ch);
+      for (let k = 0; k < N; k++) g.lineTo(X(k), cy + ch - (at(k)[6] - eMin) / (eMax - eMin) * ch * .55);
+      g.lineTo(cx + cw, cy + ch); g.fill();
+    }
+    g.lineJoin = g.lineCap = 'round';
+    g.strokeStyle = ACC; g.lineWidth = hasWo ? 2.5 : 3; g.beginPath(); sm.forEach((v, k) => k ? g.lineTo(X(k), Y(v)) : g.moveTo(X(k), Y(v))); g.stroke();
+    const H = S.map(s => s[3]).filter(v => v > 30), hasHr = H.length > S.length * .3;
+    if (hasHr) { // Puls mit eigener Skala
+      const hMin = Math.min(...H) - 5, hMax = Math.max(...H) + 5, hr = []; for (let k = 0; k < N; k++) { let a = 0, q = 0; for (let j = Math.max(0, k - 5); j <= k; j++) { const v = at(j)[3]; if (v > 30) { a += v; q++; } } hr.push(q ? a / q : null); }
+      g.strokeStyle = TX; g.lineWidth = 3; g.beginPath(); let on = false;
+      hr.forEach((v, k) => { if (v == null) { on = false; return; } const y = cy + ch - (v - hMin) / (hMax - hMin) * ch * .9; on ? g.lineTo(X(k), y) : g.moveTo(X(k), y); on = true; }); g.stroke();
+    }
+    // Legende
+    g.font = `400 20px ${MONO}`; let lx = cx; const ly = cy - 18;
+    const leg = (col, txt, block) => { g.fillStyle = col; if (block) g.fillRect(lx, ly - 13, 16, 16); else g.fillRect(lx, ly - 6, 22, 4); lx += block ? 24 : 30; g.fillStyle = TX2; g.fillText(txt, lx, ly + 2); lx += g.measureText(txt).width + 26; };
+    if (hasWo) leg('#a3ad6f', 'Workout', true); leg(ACC, 'Watt'); if (hasHr) leg(TX, 'Puls');
   }
   // Fuß
   g.fillStyle = TX2; g.font = `400 24px ${MONO}`; g.fillText('Indoor kurbeln', pad, H - 56);

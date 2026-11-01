@@ -1348,7 +1348,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.7</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.8</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -4225,7 +4225,7 @@ async function buildShareImage(rd) {
     const [sx, sy] = P(0); g.fillStyle = ACC; g.beginPath(); g.arc(sx, sy, 12, 0, TAU); g.fill();
   }
   // Werte
-  const tiles = [['Distanz', (st.dist / 1000).toFixed(1).replace('.', ','), 'km'], ['Zeit', fmtT(st.timer), ''], ['Ø Leistung', Math.round(st.avgP), 'W'], ['NP', Math.round(st.np), 'W'],
+  const tiles = [['Distanz', (st.dist / 1000).toFixed(1).replace('.', ','), 'km'], ['Zeit', fmtT(st.timer), ''], ...(st.pm ? [['NP Trainer', Math.round(st.np), 'W'], ['NP Powermeter', Math.round(st.pm.pNp), 'W']] : [['Ø Leistung', Math.round(st.avgP), 'W'], ['NP', Math.round(st.np), 'W']]),
     ['Höhenmeter', Math.round(st.asc), 'm'], ['TSS', Math.round(st.tss), ''], [st.avgHr ? 'Ø Puls' : 'Kalorien', st.avgHr ? Math.round(st.avgHr) : Math.round(st.kj), st.avgHr ? 'bpm' : 'kcal'], ['Max. Leistung', st.maxP, 'W']];
   const tw = (W - 2 * pad - 3 * 16) / 4, ty = 780;
   tiles.forEach(([l, v, u], i) => {

@@ -1348,7 +1348,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.8</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.9</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1403,7 +1403,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <div><label>Gewicht (kg) <span class="i" data-tip="Für das Tempo auf der Strecke und W/kg.">i</span></label><input type="number" id="iWeight" min="30" max="200" step="0.5"></div>
           <div><label>Steigungen (%) <span class="i" data-tip="Wie stark der Trainer Steigungen nachbildet. 100 % = echt, 50 % = halb so steil (wie bei Zwift).">i</span></label><input type="number" id="iDiff" min="0" max="100" step="5"></div>
         </div>
-        <div class="srow"><span>PowerMatch <span class="i" data-tip="Aus (empfohlen): Der Trainer steuert das Workout, der Powermeter wird nebenher aufgezeichnet – beide Wattzahlen siehst du während der Fahrt und in der Strava-Beschreibung. An: Der Powermeter gibt die Wattzahl vor und der Trainer wird nachgeregelt.">i</span></span><label class="sw"><input type="checkbox" id="cPM"></label></div>
+        <div class="srow"><span>PowerMatch <span class="i" data-tip="An: Der Powermeter gibt die Wattzahl vor – für Anzeige, Aufzeichnung und Strava – und der Trainer wird so nachgeregelt, dass die Zielwatt am Powermeter stimmen. Aus: Der Trainer steuert, der Powermeter läuft nur nebenher mit. Bei einem einseitigen Powermeter vorher „Einseitiger Powermeter (Wert ×2)“ einschalten.">i</span></span><label class="sw"><input type="checkbox" id="cPM"></label></div>
         <div class="srow"><span>Gegen eigene Bestzeit fahren (Geist) <span class="i" data-tip="Deine schnellste frühere Fahrt auf dieser Strecke fährt als grauer Punkt mit. Rechts oben siehst du, wie viele Sekunden du vorne oder hinten liegst.">i</span></span><label class="sw"><input type="checkbox" id="cGhost"></label></div>
         <div class="srow"><span>Einseitiger Powermeter (Wert ×2) <span class="i" data-tip="Für Powermeter, die nur ein Bein messen (z. B. linke Kurbel oder ein Pedal) und dabei die halbe Leistung senden. Kurbeln verdoppelt dann den Wert – wie es andere Apps automatisch tun.">i</span></span><label class="sw"><input type="checkbox" id="cPMx2"></label></div>
       </section>

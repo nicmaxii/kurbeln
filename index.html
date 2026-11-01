@@ -1345,7 +1345,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.0</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.1</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1629,6 +1629,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const fmtT = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
 
 // ---------- Speicher ----------
+if (location.protocol === 'http:' && /(^|\.)kurbeln\.com$/.test(location.hostname)) location.replace('https://' + location.host + location.pathname + location.search + location.hash); // Bluetooth braucht https
 const LS = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
@@ -4103,19 +4104,26 @@ $('#sClose').onclick = () => { stravaReadForm(); $('#stravaDlg').style.display =
 window.addEventListener('storage', e => { if (e.key === 'kurbel.strava') { Object.assign(strava, LS.get('kurbel.strava', {})); stravaRenderState(); } });
 
 // ---------- Geräte & Fahrt-Buttons ----------
+// Web Bluetooth gibt es nur in Chrome/Edge und nur über https (oder lokal geöffnete Datei)
+function btOk() {
+  if (navigator.bluetooth) return true;
+  if (!window.isSecureContext) toast('Bluetooth geht nur über eine sichere Verbindung. Öffne https://' + location.host + location.pathname, 9000);
+  else toast('Web Bluetooth nicht verfügbar – bitte Google Chrome oder Edge verwenden.', 6000);
+  return false;
+}
 $('#btnTrainer').onclick = async () => {
-  if (!navigator.bluetooth) { toast('Web Bluetooth nicht verfügbar – bitte Chrome verwenden.', 5000); return; }
+  if (!btOk()) return;
   try { const t = new BleTrainer(); await t.connect(); trainer?.close(); trainer = t; controlTrainer(true); }
   catch (e) { if (e.name !== 'NotFoundError') toast('Verbindung fehlgeschlagen: ' + e.message, 5000); setStatus('trainer', trainer ? 'on' : '', trainer ? trainer.name : 'Kein Trainer'); }
 };
 $('#btnPM').onclick = async () => {
   if (trainer?.kind === 'demo') { pm?.close(); pm = new DemoPowerMeter(); setStatus('pm', 'on', pm.name); toast('Demo-Powermeter (misst 4 % weniger als der Trainer)'); return; }
-  if (!navigator.bluetooth) { toast('Web Bluetooth nicht verfügbar – bitte Chrome verwenden.', 5000); return; }
+  if (!btOk()) return;
   try { const p = new PowerMeter(); await p.connect(); if (trainer?.device && trainer.device.id === p.device.id) { p.userClosed = true; setStatus('pm', pm ? 'on' : '', pm ? pm.name : 'Kein Powermeter'); toast('Das ist dein Trainer – für den Powermeter bitte die Pedale/Kurbel auswählen.', 6000); return; } pm?.close(); pm = p; live.pmOffset = 0; if (!settings.powerMatch) toast('Hinweis: PowerMatch ist im Setup ausgeschaltet.', 4000); }
   catch (e) { if (e.name !== 'NotFoundError') toast('Powermeter: ' + e.message, 5000); setStatus('pm', pm ? 'on' : '', pm ? pm.name : 'Kein Powermeter'); }
 };
 $('#btnHR').onclick = async () => {
-  if (!navigator.bluetooth) { toast('Web Bluetooth nicht verfügbar – bitte Chrome verwenden.', 5000); return; }
+  if (!btOk()) return;
   try { await connectHR(); } catch (e) { if (e.name !== 'NotFoundError') toast('Pulsgurt: ' + e.message, 5000); setStatus('hr', '', 'Kein Pulsgurt'); }
 };
 $('#btnDemo').onclick = () => { trainer?.close(); trainer = new DemoTrainer(); setStatus('trainer', 'on', 'Demo-Trainer'); toast('Demo-Modus: simulierter Fahrer. Unter Connections startet „Powermeter“ jetzt einen Demo-Powermeter.', 4500); };
@@ -4218,7 +4226,7 @@ document.addEventListener('keydown', e => {
 window.addEventListener('beforeunload', e => { if (ride.state === 'running' || ride.state === 'paused') { LS.set('kurbel.lastRide', Object.assign(rideRecord(), { done: false })); e.preventDefault(); e.returnValue = ''; } });
 
 // ---------- Start ----------
-if (!navigator.bluetooth) { $('#noBt').style.display = ''; if (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) $('#noBt').innerHTML = 'iPhone und iPad können im Browser kein Bluetooth. Nimm dort die kostenlose App <b>Bluefy</b> und öffne Kurbeln darin – oder einen Mac, PC bzw. ein Android-Gerät mit Chrome. Die Demo funktioniert überall.'; }
+if (!navigator.bluetooth) { $('#noBt').style.display = ''; if (!window.isSecureContext && location.protocol === 'http:') $('#noBt').innerHTML = 'Bluetooth geht nur über eine sichere Verbindung: <a href="https://' + location.host + location.pathname + '">https://' + location.host + '</a> öffnen.'; if (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) $('#noBt').innerHTML = 'iPhone und iPad können im Browser kein Bluetooth. Nimm dort die kostenlose App <b>Bluefy</b> und öffne Kurbeln darin – oder einen Mac, PC bzw. ein Android-Gerät mit Chrome. Die Demo funktioniert überall.'; }
 if (!document.fullscreenEnabled) $('#btnFull').style.display = 'none';
 { const r = LS.get('kurbel.lastRide', null); if (r && !r.exported && r.samples?.length > 60) { $('#recoverBox').style.display = ''; $('#recoverDate').textContent = new Date(r.start).toLocaleString('de-DE'); } }
 initMap();

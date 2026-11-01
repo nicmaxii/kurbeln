@@ -53,6 +53,7 @@ Playwright (Chromium) gegen die lokale Datei oder `python3 -m http.server`:
 
 ## Offen / Ideen
 
+- Web Bluetooth braucht https: Seite leitet http://…kurbeln.com automatisch auf https um; `btOk()` erklärt fehlendes Bluetooth (unsicher vs. falscher Browser). GitHub Pages: „Enforce HTTPS“ muss an sein.
 - Technische Kennungen bleiben `kurbel` (localStorage, IndexedDB, Strava-`state`, `KurbelLanding`).
 
 - Powermeter vs. Trainer: große Abweichung bei Max, PowerMatch klappte nicht → jetzt Standard „Trainer steuert, Powermeter läuft mit“.

@@ -1348,7 +1348,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.5</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 4.6</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -3148,17 +3148,22 @@ function drawSummaryChart(rd) {
   if (S.some(s => s[7] != null)) { const sp = S.map((s, i) => { let a = 0, k = 0; for (let j = Math.max(0, i - 4); j <= i; j++) { a += S[j][7] || 0; k++; } return a / k; }); line((s, i) => sp[i], maxP, '#ffffffaa'); }
 }
 class FitWriter {
-  constructor() { this.b = []; this.defs = {}; }
-  def(local, global, fields) { this.defs[local] = fields; this.b.push(0x40 | local, 0, 0, global & 0xff, global >> 8, fields.length); fields.forEach(f => this.b.push(f[0], f[1], f[2])); }
+  constructor() { this.b = []; this.defs = {}; this.devs = {}; }
+  def(local, global, fields, devs = []) { // devs: Entwicklerfelder [Feldnummer, Größe, Entwickler-Index]
+    this.defs[local] = fields; this.devs[local] = devs; this.b.push(0x40 | (devs.length ? 0x20 : 0) | local, 0, 0, global & 0xff, global >> 8, fields.length); fields.forEach(f => this.b.push(f[0], f[1], f[2]));
+    if (devs.length) { this.b.push(devs.length); devs.forEach(f => this.b.push(f[0], f[1], f[2])); }
+  }
   data(local, vals) {
     this.b.push(local);
     this.defs[local].forEach((f, i) => {
+      if (f[2] === 0x07) { const t = new TextEncoder().encode(vals[i] || ''); for (let k = 0; k < f[1]; k++) this.b.push(k < t.length && k < f[1] - 1 ? t[k] : 0); return; } // Text, mit 0 aufgefüllt
       const [, size, bt] = f, inv = { 0x00: 0xFF, 0x02: 0xFF, 0x84: 0xFFFF, 0x85: 0x7FFFFFFF, 0x86: 0xFFFFFFFF, 0x8c: 0 }[bt];
       let v = vals[i]; v = (v == null || !isFinite(v)) ? inv : Math.round(v);
       if (bt === 0x85) { if (v !== inv) { v = clamp(v, -0x7FFFFFFF, 0x7FFFFFFE); if (v < 0) v += 0x100000000; } }
       else if (v !== inv) v = clamp(v, 0, size === 1 ? 0xFE : size === 2 ? 0xFFFE : 0xFFFFFFFE);
       for (let k = 0; k < size; k++) this.b.push(Math.floor(v / Math.pow(2, 8 * k)) & 0xff);
     });
+    (this.devs[local] || []).forEach((f, i) => { let v = vals[this.defs[local].length + i]; v = v == null || !isFinite(v) ? 0xFFFF : clamp(Math.round(v), 0, 0xFFFE); this.b.push(v & 0xff, v >> 8); }); // nur uint16
   }
   static crc(crc, byte) { const t = [0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401, 0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400]; let tmp = t[crc & 0xF]; crc = (crc >> 4) & 0x0FFF; crc = crc ^ tmp ^ t[byte & 0xF]; tmp = t[crc & 0xF]; crc = (crc >> 4) & 0x0FFF; return crc ^ tmp ^ t[(byte >> 4) & 0xF]; }
   finish() {
@@ -3177,8 +3182,13 @@ function buildFIT(rd, asGarmin, opt = {}) { // opt.uniq: neue Seriennummer/Erste
   w.def(0, 0, [[0, 1, 0], [1, 2, 0x84], [2, 2, 0x84], [3, 4, 0x8c], [4, 4, 0x86]]); w.data(0, asGarmin ? [4, 1, 3121, serial, created ?? start] : [4, 255, 1, serial, created ?? start]); // 1 = Garmin, 3121 = Edge 530
   w.def(1, 21, [[253, 4, 0x86], [0, 1, 0], [1, 1, 0]]); w.data(1, [start, 0, 0]);
   const gr = rideRoute(rd), semi = deg => deg * 2147483648 / 180; // Strecke mit Koordinaten → Karte bei Strava/Garmin
-  w.def(2, 20, [[253, 4, 0x86], [0, 4, 0x85], [1, 4, 0x85], [7, 2, 0x84], [4, 1, 2], [3, 1, 2], [6, 2, 0x84], [5, 4, 0x86], [2, 2, 0x84]]);
-  S.forEach(s => { const ll = gr ? latLonAt(gr, s[5]) : null; w.data(2, [ts(s[0]), ll ? semi(ll[0]) : null, ll ? semi(ll[1]) : null, s[1], s[2], s[3] || null, s[4] * 1000, s[5] * 100, (s[6] + 500) * 5]); });
+  const hasPM = S.some(s => s[7] != null); // Powermeter-Watt als Entwicklerfeld „Powermeter Power“ (intervals.icu, WKO, GoldenCheetah lesen es)
+  if (hasPM) {
+    w.def(6, 207, [[3, 1, 0x02]]); w.data(6, [0]);
+    w.def(7, 206, [[0, 1, 0x02], [1, 1, 0x02], [2, 1, 0x02], [3, 18, 0x07], [8, 6, 0x07]]); w.data(7, [0, 0, 0x84, 'Powermeter Power', 'watts']);
+  }
+  w.def(2, 20, [[253, 4, 0x86], [0, 4, 0x85], [1, 4, 0x85], [7, 2, 0x84], [4, 1, 2], [3, 1, 2], [6, 2, 0x84], [5, 4, 0x86], [2, 2, 0x84]], hasPM ? [[0, 2, 0]] : []);
+  S.forEach(s => { const ll = gr ? latLonAt(gr, s[5]) : null; w.data(2, [ts(s[0]), ll ? semi(ll[0]) : null, ll ? semi(ll[1]) : null, s[1], s[2], s[3] || null, s[4] * 1000, s[5] * 100, (s[6] + 500) * 5, ...(hasPM ? [s[7]] : [])]); });
   w.data(1, [end, 0, 4]);
   const elapsed = (end - start + 1) * 1000, timer = st.timer * 1000;
   w.def(3, 19, [[253, 4, 0x86], [2, 4, 0x86], [7, 4, 0x86], [8, 4, 0x86], [9, 4, 0x86], [0, 1, 0], [1, 1, 0], [19, 2, 0x84], [20, 2, 0x84], [15, 1, 2], [16, 1, 2], [17, 1, 2], [13, 2, 0x84], [14, 2, 0x84]]);

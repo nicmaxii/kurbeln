@@ -278,7 +278,13 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 #calDlg button.primary,#dashDlg button.primary,#planDlg .actions button.primary{background:var(--acc)!important;border:0!important;border-radius:999px!important;font-weight:800!important;color:var(--onacc)!important;padding:10px 22px!important;box-shadow:none}
 #calDlg button.primary:disabled{opacity:.5}
 #dashDlg .card.dash{width:min(1040px,100%);padding:26px 28px;background:var(--s1)}
-.dTiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.dTiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:12px}
+.dCoach{margin-top:16px}.coachRow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+.coachCard{background:var(--s1);border:1px solid var(--ln);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.coachCard .ctag{font-size:12px;color:var(--tx2);font-weight:700;display:flex;align-items:center;gap:6px}.coachCard .ctag i{width:8px;height:8px;border-radius:50%;background:var(--cc,var(--acc))}
+.coachCard .wprof{height:44px}.coachCard .wprof svg{width:100%;height:100%;display:block}
+.coachCard b{font-size:16px;color:var(--tx);line-height:1.25}.coachCard .cmeta{font-size:13px;color:var(--tx2);font-family:var(--numfont)}.coachCard p{margin:0;font-size:13px;color:var(--tx2);line-height:1.45;flex:1}
+.coachCard button{align-self:flex-start}
 .dTile{background:var(--s0);border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}.dTile small{font-size:13px;color:var(--tx2);font-weight:700;display:flex;align-items:center;gap:6px}
 .dTile b{font-size:34px;font-weight:900;color:var(--tx);line-height:1.1;font-variant-numeric:tabular-nums}.dTile b span{font-size:16px;font-weight:700;color:var(--tx2)}.dTile em{font-style:normal;font-size:13px;color:var(--tx2)}.dTile.muted b{color:#aeaeb2}
 .dBtn{margin-top:8px;align-self:flex-start;background:var(--sel)!important;color:var(--onsel)!important;border-radius:999px!important;font-weight:800!important;padding:7px 14px!important;font-size:13px!important}
@@ -291,7 +297,7 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 .zLeg{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 0;font-size:13px;color:var(--tx2)}
 .dRide{display:grid;grid-template-columns:110px 1fr auto;gap:10px;padding:8px 0;border-top:1px solid var(--ln);font-size:14px}.dRide:first-child{border-top:0}.dRide span{color:var(--tx2)}
 .dEmpty{color:#8b95a5;font-size:14px;padding:18px 0;text-align:center}
-@media (max-width:760px){.dTiles{grid-template-columns:1fr 1fr}.dGrid2{grid-template-columns:1fr}.dRide{grid-template-columns:1fr}}
+@media (max-width:760px){.coachRow{grid-template-columns:1fr}.dTiles{grid-template-columns:1fr 1fr}.dGrid2{grid-template-columns:1fr}.dRide{grid-template-columns:1fr}}
 .ccats button .cdot{width:9px;height:9px;border-radius:50%;background:var(--cc);display:inline-block}.ccats button.on .cdot{background:var(--s1)}
 .pbWeek{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:64px;height:64px;border-radius:18px;background:var(--pc);color:var(--onacc);line-height:1}.pbWeek b{font-size:26px;font-weight:900}.pbWeek small{font-size:10px;font-weight:700;opacity:.85}
 .pcAx{display:flex;justify-content:space-between;font-size:11px;color:#8b95a5;margin:-6px 0 12px}.pcWeeks i.e{opacity:.35}
@@ -1221,9 +1227,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
 <body>
 <div id="landing">
   <canvas id="ltrail" aria-hidden="true"></canvas><canvas id="lcv"></canvas>
-  <nav class="lnav"><span class="brand">kurbeln</span><a data-go="dash">Dashboard</a><a data-go="plan">Trainingsplan</a><a data-go="history">Meine Fahrten</a><a data-go="map">Kurbeln</a><a class="cta" data-go="map">Losfahren</a></nav>
+  <nav class="lnav"><span class="brand">kurbeln</span><a data-go="dash">Dashboard</a><a data-go="plan">Trainingsplan</a><a data-go="history">Meine Fahrten</a><a data-go="map">Kurbeln</a><a class="cta" data-go="start">Losfahren</a></nav>
   <div class="lgrain"></div><div class="lhero"><h1>kurbeln</h1>
-    <div class="lbtns"><button class="b1" data-go="map">Losfahren</button><button class="b2" data-go="demo">Demo ansehen ›</button></div></div>
+    <div class="lbtns"><button class="b1" data-go="start">Losfahren</button><button class="b2" data-go="demo">Demo ansehen ›</button></div></div>
   <div class="lhint">Scrollen oder heranzoomen, um einzutauchen<span>⌄</span></div>
   <div id="lfade"></div>
 </div>
@@ -1350,7 +1356,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.2</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.3</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1425,6 +1431,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <div class="overlay" id="dashDlg" style="display:none">
     <div class="card menu dash">
       <div class="mhead"><h2>Dashboard</h2><div class="spacer" style="flex:1"></div><button class="primary" id="dashClose">Schließen</button></div>
+      <section class="dCard dCoach"><h3>Heute empfohlen <span class="i" data-tip="Der Coach schaut auf deine letzten Fahrten: Wie frisch bist du (Form), wann warst du zuletzt hart unterwegs, wie viel bist du diese Woche gefahren und was steht im Plan. Daraus schlägt er 2–3 passende Einheiten vor.">i</span></h3><p class="sub" id="dCoachTxt"></p><div class="coachRow" id="dCoach"></div></section>
       <div class="dTiles" id="dTiles"></div>
       <div class="dGrid2">
         <section class="dCard"><h3>FTP-Schätzung</h3><p class="sub" id="dEstTxt"></p><h3 style="margin-top:14px">Form</h3><p class="sub" id="dFormTxt"></p></section>
@@ -1435,7 +1442,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <section class="dCard"><h3>Stunden pro Woche</h3><div id="dWeeks" class="dChart"></div></section>
         <section class="dCard"><h3>Leistungskurve <span class="dLeg"><span><i style="background:#9a9a94"></i>6 Wochen</span><span><i style="background:#edff9a"></i>Gesamt</span></span></h3><div id="dCurve" class="dChart"></div></section>
       </div>
-      <section class="dCard"><h3>Zeit in den Zonen · letzte 4 Wochen</h3><div id="dZones"></div></section>
+      <div class="dGrid2">
+        <section class="dCard"><h3>Zeit in den Zonen · letzte 4 Wochen</h3><div id="dZones"></div></section>
+        <section class="dCard"><h3>VO2max-Entwicklung <span class="i" data-tip="Geschätzt aus deiner besten 5-Minuten-Leistung der jeweils letzten 6 Wochen und deinem Gewicht (Formel nach Sitko et al. 2021: 16,6 + 8,87 × W/kg). Steigt nur, wenn du ab und zu 5 Minuten wirklich hart fährst. Keine Labormessung.">i</span></h3><div id="dVo2" class="dChart"></div><p class="sub" id="dVo2Txt"></p></section>
+      </div>
       <section class="dCard"><h3>Letzte Fahrten</h3><div id="dRecent"></div></section>
     </div>
   </div>
@@ -3912,9 +3922,9 @@ function lineChart(el, series, o = {}) {
   const W = el.clientWidth || 600, H = o.h || 200, L = 40, R = 26, T = 10, B = 26;
   const xs = series.flatMap(s => s.pts.map(p => p[0])), ys = series.flatMap(s => s.pts.map(p => p[1]));
   if (!xs.length) { el.innerHTML = '<div class="dEmpty">Noch keine Daten</div>'; return; }
-  const fx0 = o.logx ? Math.log : v => v, x0 = fx0(Math.min(...xs)), x1 = fx0(Math.max(...xs)), y1 = Math.max(...ys) * 1.1 || 1, y0 = Math.min(0, ...ys);
+  const fx0 = o.logx ? Math.log : v => v, x0 = fx0(Math.min(...xs)), x1 = fx0(Math.max(...xs)), y1 = o.y1 ?? (Math.max(...ys) * 1.1 || 1), y0 = o.y0 ?? Math.min(0, ...ys);
   const X = v => L + (fx0(v) - x0) / ((x1 - x0) || 1) * (W - L - R), Y = v => T + (1 - (v - y0) / (y1 - y0)) * (H - T - B);
-  const ticks = []; const st = Math.pow(10, Math.floor(Math.log10(y1 / 3))), step = [1, 2, 5].map(m => m * st).find(s => y1 / s <= 5) || st * 10;
+  const ticks = []; const yr = y1 - y0, st = Math.pow(10, Math.floor(Math.log10(yr / 3))), step = [1, 2, 5].map(m => m * st).find(s => yr / s <= 5) || st * 10;
   for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step) ticks.push(v);
   let g = ticks.map(v => `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" class="dGrid"/><text x="${L - 6}" y="${Y(v) + 4}" class="dAx" text-anchor="end">${Math.round(v)}</text>`).join('');
   g += (o.xticks || []).map(([v, l], i, a) => `<text x="${X(v)}" y="${H - 6}" class="dAx" text-anchor="${i === a.length - 1 ? 'end' : i === 0 ? 'start' : 'middle'}">${l}</text>`).join('');
@@ -3945,16 +3955,86 @@ function barChart(el, data, o = {}) {
   el.querySelectorAll('.dHit').forEach(r => { r.onmousemove = e => tipShow(e, data[r.dataset.i].tip); r.onmouseleave = tipHide; });
 }
 const formLabel = t => t > 15 ? ['Sehr frisch', 'Gut erholt – ideal für Test oder Rennen. Länger so heißt aber: Fitness sinkt.'] : t > 5 ? ['Frisch', 'Erholt und bereit für harte Einheiten.'] : t > -10 ? ['Ausgeglichen', 'Gute Balance aus Training und Erholung.'] : t > -30 ? ['Im Aufbau', 'Du trainierst produktiv – auf ausreichend Schlaf und Erholungstage achten.'] : ['Sehr ermüdet', 'Hohes Risiko für Übertraining – ein paar lockere Tage einlegen.'];
+// ---------- VO2max-Schätzung (Sitko et al. 2021: VO2max ≈ 16,6 + 8,87 × beste 5-min-Leistung in W/kg) ----------
+function vo2Series(rides) {
+  const kg = settings.weight || 75, day = 864e5, rs = rides.slice().sort((a, b) => a.start - b.start);
+  rs.forEach(r => { if (r._p5 == null) r._p5 = mmp(r.samples.map(s => s[1]), [300])[300] || 0; });
+  const pts = []; let p5 = 0, lastHard = 0;
+  for (const r of rs) {
+    const best = Math.max(...rs.filter(x => x.start <= r.start && r.start - x.start < 42 * day).map(x => x._p5));
+    if (best > 0) pts.push([Math.floor(r.start / day), 16.6 + 8.87 * best / kg]);
+  }
+  const win = rs.filter(x => Date.now() - x.start < 42 * day);
+  p5 = win.length ? Math.max(...win.map(x => x._p5)) : 0;
+  const top = win.filter(x => x._p5 >= p5 * .97).map(x => x.start); lastHard = top.length ? Math.max(...top) : 0;
+  const now = p5 ? 16.6 + 8.87 * p5 / kg : null;
+  const t0 = Math.floor(Date.now() / day) - 42, prev = pts.filter(p => p[0] <= t0).pop();
+  return { pts, now, p5, d: now && prev ? now - prev[1] : null, old: p5 && Date.now() - lastHard > 21 * day };
+}
+// ---------- Coach: 2–3 Vorschläge für heute aus Form, letzten harten Einheiten, Wochenumfang und Plan ----------
+function rideKind(r) {
+  const f = r.ftp || settings.ftp; let hi = 0, th = 0;
+  for (const s of r.samples) { const q = s[1] / f; if (q >= 1.06) hi++; else if (q >= .88) th++; }
+  return hi >= 300 ? 'vo2' : th >= 900 ? 'thr' : r.sum.timer >= 5400 ? 'long' : 'easy';
+}
+function coachSuggest(rides, P) {
+  const now = Date.now(), day = 864e5, last = P[P.length - 1] || { tsb: 0, ctl: 0 }, tsb = rides.length >= 3 ? last.tsb : 0;
+  const recent = rides.filter(r => now - r.start < 28 * day).sort((a, b) => b.start - a.start);
+  recent.forEach(r => { if (!r._kind) r._kind = rideKind(r); });
+  const since = k => { const r = recent.find(r => k.includes(r._kind)); return r ? (now - r.start) / day : 99; };
+  const lastHard = since(['vo2', 'thr']), sVo2 = since(['vo2']), sThr = since(['thr']), sLong = since(['long']);
+  const today = new Date().toDateString(), rodeToday = recent.some(r => new Date(r.start).toDateString() === today);
+  const week = rides.filter(r => now - r.start < 7 * day).reduce((a, r) => a + r.sum.timer, 0) / 3600;
+  const wd = new Date().getDay(), weekend = wd === 0 || wd === 6, rot = Math.floor(now / day);
+  const pick = a => a[rot % a.length];
+  const out = [], add = (id, tag, why) => { if (workoutById(id) && !out.some(o => o.id === id)) out.push({ id, tag, why }); };
+  const fmtD = d => d >= 99 ? 'länger nicht' : d < 1.5 ? 'gestern' : 'vor ' + Math.round(d) + ' Tagen';
+  let head;
+  const nx = typeof plan !== 'undefined' && plan && planNext();
+  if (nx && workoutById(nx.id) && !workoutById(nx.id).off) add(nx.id, 'Aus deinem Plan', 'Steht als Nächstes in „' + planDef().name + '“.');
+  if (rodeToday) {
+    head = 'Du bist heute schon gefahren. Wenn du noch Lust hast: nur locker – Erholung bringt jetzt mehr.';
+    add('rec30', 'Erholung', 'Lockeres Ausrollen, damit die Beine morgen frisch sind.'); add('rec45', 'Erholung', 'Etwas länger locker, ohne neue Ermüdung.');
+  } else if (tsb < -25 || lastHard < 1.5 && tsb < -10) {
+    head = `Du bist gerade ziemlich müde (Form ${Math.round(tsb)}${lastHard < 1.5 ? ', gestern war hart' : ''}). Heute lieber locker – die Anpassung passiert in der Erholung.`;
+    add('rec45', 'Erholung', 'Regeneration: Beine lockern, Puls niedrig halten.');
+    add('z2_60', 'Grundlage', 'Ruhige Stunde Zone 2, falls du dich doch gut fühlst.');
+    add('lib_lit_0h45_min', 'Grundlage', 'Kurz und locker – zählt trotzdem für die Ausdauer.');
+  } else if (lastHard >= 2 && tsb > -20) {
+    const vo2First = sVo2 >= sThr;
+    head = `Du bist ausgeruht genug für eine harte Einheit (Form ${tsb > 0 ? '+' : ''}${Math.round(tsb)}, letzte harte Einheit ${fmtD(lastHard)}).`;
+    const vo2 = () => add(pick(['vo2_5x4', 'lib_hit_eb_4x4_min', 'ronn', 'lib_hit_dec_5x4_min', 'i4020']), 'VO2max', 'Kurze, harte Intervalle – VO2max zuletzt ' + fmtD(sVo2) + '. Hebt deine Spitzenleistung.');
+    const thr = () => add(pick(['ss3x10', 'thr3x12', 'lib_mit_sweet_spot_3x12_min', 'ss2x20', 'lib_mit_swsp_4x8_min']), 'Sweet Spot / Schwelle', 'Lange, zügige Intervalle – zuletzt ' + fmtD(sThr) + '. Hebt deine FTP.');
+    if (vo2First) { vo2(); thr(); } else { thr(); vo2(); }
+    add(weekend ? 'z2_120' : 'z2_60', 'Grundlage', 'Wenn es heute nicht hart sein soll: entspannte Zone 2.');
+  } else {
+    head = `Heute passt Grundlage am besten (Form ${tsb > 0 ? '+' : ''}${Math.round(tsb)}, letzte harte Einheit ${fmtD(lastHard)}, diese Woche ${week.toFixed(1).replace('.', ',')} h).`;
+    if (weekend || sLong > 7) add(week < 4 ? 'z2_120' : 'z2_90', 'Lange Grundlage', 'Die lange Ausfahrt der Woche – ' + (sLong > 7 ? 'die letzte ist schon ' + fmtD(sLong).replace('vor ', '') + ' her.' : 'baut Ausdauer und Fettstoffwechsel auf.'));
+    add('z2_60', 'Grundlage', 'Ruhige Stunde Zone 2 – baut Ausdauer auf, ohne müde zu machen.');
+    add('z2_tempo', 'Grundlage + Tempo', 'Zone 2 mit kurzen Tempo-Abschnitten – etwas mehr Reiz, trotzdem gut verkraftbar.');
+  }
+  if (!rides.length) head = 'Noch keine Fahrten gespeichert – hier ein guter Einstieg. Nach ein paar Fahrten passen sich die Vorschläge an dich an.';
+  return { head, list: out.slice(0, 3) };
+}
+function renderCoach(rides, P) {
+  const c = coachSuggest(rides, P);
+  $('#dCoachTxt').textContent = c.head;
+  $('#dCoach').innerHTML = c.list.map(o => { const w = workoutById(o.id); return `<div class="coachCard" style="--cc:${catColor(woCat(w))}"><div class="ctag"><i></i>${esc(o.tag)}</div><div class="wprof">${woSvg(w)}</div><b>${esc(w.name)}</b><div class="cmeta">${fmtT(woTotal(w))} · TSS ${woTss(w)}</div><p>${esc(o.why)}</p><button class="primary" data-coach="${esc(o.id)}">Auswählen</button></div>`; }).join('');
+  $('#dCoach').querySelectorAll('[data-coach]').forEach(b => b.onclick = () => { $('#dashDlg').style.display = 'none'; pickWorkout(b.dataset.coach, b.closest('.coachCard').querySelector('.ctag').textContent === 'Aus deinem Plan' ? 'Plan' : woCat(workoutById(b.dataset.coach))); $('#setup').style.display = 'flex'; toast('Workout gewählt – Strecke aussuchen und Start drücken.', 3500); });
+}
 async function openDash() {
   const d = $('#dashDlg'); d.style.display = 'flex';
   let rides = []; try { rides = (await idb.allRides()).filter(r => r.samples?.length); } catch (e) {}
   rides.forEach(r => { if (!r.sum) r.sum = rideSummary(r); });
   const est = ftpEstimate(rides, settings.ftp), P = pmc(rides), last = P[P.length - 1] || { ctl: 0, atl: 0, tsb: 0 }, [fl, ft] = formLabel(last.tsb);
   const wkg = v => (v / settings.weight).toFixed(2).replace('.', ',');
+  const vo2 = vo2Series(rides);
+  renderCoach(rides, P);
   $('#dTiles').innerHTML = `
     <div class="dTile"><small>FTP (eingetragen)</small><b>${settings.ftp}<span> W</span></b><em>${wkg(settings.ftp)} W/kg</em></div>
     <div class="dTile${est.ftp ? '' : ' muted'}"><small>FTP-Schätzung <span class="i" data-tip="${esc(est.how)}">i</span></small><b>${est.ftp ? est.ftp + '<span> W</span>' : '–'}</b><em>${est.ftp ? 'Zuverlässigkeit: ' + est.level : 'zu wenig Daten'}</em>${est.ftp && Math.abs(est.ftp - settings.ftp) >= 3 ? `<button class="dBtn" id="dUseFtp">${est.ftp} W übernehmen</button>` : ''}</div>
     <div class="dTile"><small>Fitness <span class="i" data-tip="Chronische Trainingsbelastung (CTL): gleitender 42-Tage-Schnitt deiner TSS pro Tag. Steigt langsam, wenn du regelmäßig trainierst.">i</span></small><b>${Math.round(last.ctl)}</b><em>${P.length > 7 ? (last.ctl - P[P.length - 8].ctl >= 0 ? '+' : '') + (last.ctl - P[P.length - 8].ctl).toFixed(1) + ' in 7 Tagen' : ''}</em></div>
+    <div class="dTile${vo2.now ? '' : ' muted'}"><small>VO2max (Schätzung) <span class="i" data-tip="Aus deiner besten 5-Minuten-Leistung der letzten 6 Wochen und deinem Gewicht – Einheit ml/kg/min. Grober Richtwert, keine Labormessung.">i</span></small><b>${vo2.now ? vo2.now.toFixed(0) : '–'}</b><em>${vo2.now ? (vo2.d != null ? (vo2.d >= 0 ? '+' : '−') + Math.abs(vo2.d).toFixed(1).replace('.', ',') + ' in 6 Wochen' : 'ml/kg/min') : 'noch keine harten 5 min'}</em></div>
     <div class="dTile"><small>Form <span class="i" data-tip="Form (TSB) = Fitness − Ermüdung. Negativ heißt: du bist im Aufbau. Positiv: frisch. Modell nach Banister/Coggan.">i</span></small><b>${last.tsb > 0 ? '+' : ''}${Math.round(last.tsb)}</b><em>${fl}</em></div>`;
   $('#dFormTxt').textContent = ft;
   $('#dEstTxt').textContent = est.how + (est.level === 'niedrig' ? ' – die Werte passen nicht ganz zusammen, daher nur grob.' : '') + (est.ftp && est.level !== 'hoch' ? ' Eine Schätzung ist nur so gut wie deine härtesten Abschnitte: Bist du dort nicht voll gefahren, liegt die echte FTP höher.' : '');
@@ -3982,6 +4062,9 @@ async function openDash() {
     <div class="zLeg">${Z.map((v, i) => `<span><i style="background:${ZC[i]}"></i>${ZN[i]} <b>${Math.round(v / zt * 100)} %</b></span>`).join('')}</div>
     <p class="sub">Locker (bis Grundlage): <b>${Math.round((Z[0] + Z[1]) / zt * 100)} %</b> · Hart (ab Schwelle): <b>${Math.round((Z[3] + Z[4] + Z[5] + Z[6]) / zt * 100)} %</b>. Empfehlung aus der Forschung: rund 80 % locker, 20 % hart.</p>` : '<div class="dEmpty">Noch keine Fahrten in den letzten 4 Wochen</div>';
   $('#dZones').querySelectorAll('[data-z]').forEach(x => { x.onmousemove = e => { const i = +x.dataset.z; tipShow(e, `<b>${ZN[i]}</b> (${ZR[i]} FTP)<div>${Math.round(Z[i] / 60)} min · ${Math.round(Z[i] / zt * 100)} %</div>`); }; x.onmouseleave = tipHide; });
+  // VO2max
+  lineChart($('#dVo2'), [{ name: 'VO2max', color: DC.a, pts: vo2.pts }], { h: 170, y0: vo2.pts.length ? Math.floor(Math.min(...vo2.pts.map(p => p[1])) / 5) * 5 - 5 : 0, y1: vo2.pts.length ? Math.ceil(Math.max(...vo2.pts.map(p => p[1])) / 5) * 5 + 5 : 1, xfmt: fd, yfmt: v => v.toFixed(1).replace('.', ',') + ' ml/kg/min', xticks: vo2.pts.filter((p, i, a) => i % Math.max(1, Math.ceil(a.length / 5)) === 0).map(p => [p[0], fd(p[0])]) });
+  $('#dVo2Txt').textContent = vo2.pts.length ? 'Beste 5 min der letzten 6 Wochen: ' + Math.round(vo2.p5) + ' W (' + wkg(vo2.p5) + ' W/kg).' + (vo2.old ? ' Diese Bestleistung ist schon über 3 Wochen alt – fällt sie aus dem 6-Wochen-Fenster, sinkt die Schätzung. Ein harter 5-Minuten-Block (z. B. VO2max 5×4 min) hält den Wert oben.' : '') : 'Sobald du einmal 5 Minuten richtig hart fährst (z. B. VO2max 5×4 min oder FTP-Test), erscheint hier die Entwicklung.';
   // Plan + letzte Fahrten
   const Pd = planDef(), nx = planNext();
   $('#dPlan').innerHTML = Pd ? `<b>${esc(Pd.name)}</b> · Woche ${nx ? nx.w + 1 : Pd.weeks} von ${Pd.weeks}<div class="pbBar" style="--pc:${Pd.color}"><i style="width:${Object.keys(plan.done).length / planCount(Pd) * 100}%"></i></div><p class="sub">${nx ? 'Als Nächstes: ' + esc(workoutById(nx.id)?.name || '') : 'Plan geschafft.'}</p>` : '<p class="sub">Kein Plan aktiv.</p><button class="dBtn" id="dPlanBtn">Plan wählen</button>';
@@ -4756,9 +4839,10 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.g
 // ---------- Startseite ↔ App ----------
 (function () {
   const L = window.KurbelLanding, el = document.getElementById('landing');
-  let intent = 'map';
+  let intent = 'start';
   function afterEnter() {
     el.style.display = 'none';
+    if (intent === 'start') intent = LS.get('kurbel.tour', 0) ? 'dash' : 'map'; // nach der Einführung startet Kurbeln im Dashboard mit dem Tagesvorschlag
     if (intent === 'data' || intent === 'video' || intent === 'map') setView(intent);
     if (map) setTimeout(() => map.invalidateSize(), 50);
     if (intent === 'workouts' || intent === 'routes') { setView('map'); $('#setup').style.display = 'flex'; setTimeout(() => (intent === 'workouts' ? $('#favRow') : $('#selRoute')).scrollIntoView({ behavior: 'smooth', block: 'center' }), 60); }
@@ -4774,7 +4858,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.g
   else { L.onEnter = afterEnter; L.start(); }
   $('#btnHome').onclick = () => {
     if (ride.state === 'running') pauseRide();
-    el.style.display = ''; intent = 'map';
+    el.style.display = ''; intent = 'start';
     if (L && !L.fail) L.start();
   };
 })();

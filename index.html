@@ -279,7 +279,18 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 #calDlg button.primary:disabled{opacity:.5}
 #dashDlg .card.dash{width:min(1040px,100%);padding:26px 28px;background:var(--s1)}
 .dTiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:12px}
-.dCoach{margin-top:16px}.coachRow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+.dCoach{margin-top:16px}
+.goalBig{font-size:30px;font-weight:600;color:var(--tx);font-family:var(--numfont);letter-spacing:-.04em}.goalBig span{font-size:15px;color:var(--tx2);font-family:var(--uifont);letter-spacing:0;margin-left:6px}
+.goalBar{height:10px;border-radius:99px;background:var(--s2);overflow:hidden;margin:8px 0}.goalBar i{display:block;height:100%;background:var(--acc);border-radius:99px}
+.goalSet{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--tx2)}.goalSet input{width:70px}
+.goalDays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}.goalDays div{text-align:center;font-size:11px;color:var(--tx2)}.goalDays b{display:block;height:34px;border-radius:6px;background:var(--s2);position:relative;overflow:hidden;margin-bottom:3px}.goalDays b i{position:absolute;left:0;right:0;bottom:0;background:var(--acc)}
+.calNav{padding:2px 10px!important;font-size:16px!important;line-height:1.2}
+.calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.calGrid .cw{text-align:center;font-size:11px;color:var(--tx2);padding-bottom:2px}
+.calGrid .cd{aspect-ratio:1/0.82;border-radius:8px;background:var(--s1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;color:var(--tx2);font-family:var(--numfont);border:1px solid transparent}
+.calGrid .cd.out{opacity:.35}.calGrid .cd.today{border-color:var(--acc);color:var(--tx)}.calGrid .cd.has{color:var(--tx);cursor:pointer}.calGrid .cd.has:hover{background:var(--s2)}
+.calGrid .cd i{display:block;border-radius:50%;background:var(--acc)}.calGrid .cd.plan i{background:transparent;border:1.5px solid var(--tx2)}
+.calSum{margin-top:8px;font-size:13px;color:var(--tx2)}
+.sumPb{margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--acc);color:var(--onacc)}.sumPb b{font-size:16px}.sumPb div{font-size:14px;margin-top:4px;font-family:var(--numfont)}.coachRow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
 .coachCard{background:var(--s1);border:1px solid var(--ln);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .coachCard .ctag{font-size:12px;color:var(--tx2);font-weight:700;display:flex;align-items:center;gap:6px}.coachCard .ctag i{width:8px;height:8px;border-radius:50%;background:var(--cc,var(--acc))}
 .coachCard .wprof{height:44px}.coachCard .wprof svg{width:100%;height:100%;display:block}
@@ -1356,7 +1367,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.4</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.5</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1433,6 +1444,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <div class="mhead"><h2>Dashboard</h2><div class="spacer" style="flex:1"></div><button class="primary" id="dashClose">Schließen</button></div>
       <section class="dCard dCoach"><h3>Heute empfohlen <span class="i" data-tip="Der Coach schaut auf deine letzten Fahrten: Wie frisch bist du (Form), wann warst du zuletzt hart unterwegs, wie viel bist du diese Woche gefahren und was steht im Plan. Daraus schlägt er 2–3 passende Einheiten vor.">i</span></h3><p class="sub" id="dCoachTxt"></p><div class="coachRow" id="dCoach"></div></section>
       <div class="dTiles" id="dTiles"></div>
+      <div class="dGrid2">
+        <section class="dCard"><h3>Wochenziel <span class="i" data-tip="Wie viele Stunden willst du pro Woche fahren? Die Woche beginnt am Montag. Zählt alle Fahrten in Kurbeln.">i</span></h3><div id="dGoal"></div></section>
+        <section class="dCard"><h3><span id="calTitle"></span><span class="spacer" style="flex:1"></span><button class="calNav" id="calPrev" aria-label="Voriger Monat">‹</button><button class="calNav" id="calNext" aria-label="Nächster Monat">›</button></h3><div id="dCal"></div></section>
+      </div>
       <div class="dGrid2">
         <section class="dCard"><h3>FTP-Schätzung</h3><p class="sub" id="dEstTxt"></p><h3 style="margin-top:14px">Form</h3><p class="sub" id="dFormTxt"></p></section>
         <section class="dCard"><h3>Trainingsplan</h3><div id="dPlan"></div></section>
@@ -1533,6 +1548,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <h3>Backup</h3>
       <div class="hint">Sichert alles in eine Datei – zum Umziehen auf einen anderen Rechner oder falls du die Browserdaten löschst. Achtung: Die Datei enthält auch deine Strava- und Google-Zugänge, also nicht weitergeben.</div>
       <div class="inline" style="margin-top:8px"><button id="bkSave">Backup speichern</button><button id="bkLoad">Backup laden</button></div>
+      <h3>Automatisches Backup</h3>
+      <div class="hint">Wähle einmal einen Ordner (z. B. in iCloud Drive oder Dropbox). Nach jeder Fahrt legt Kurbeln dort automatisch ein aktuelles Backup ab – „Kurbeln-Backup.json“ plus eine Kopie pro Tag (die letzten 14 bleiben).</div>
+      <div class="inline" style="margin-top:8px"><button id="bkAuto">Ordner wählen</button><button id="bkAutoNow" style="display:none">Jetzt sichern</button><button id="bkAutoOff" style="display:none">Ausschalten</button></div>
+      <div class="hint" id="bkAutoInfo" style="margin-top:6px"></div>
       <div class="actions"><button id="histClose">Schließen</button></div>
     </div>
   </div>
@@ -1546,6 +1565,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <h3>Fahrt</h3>
       <div class="stats" id="sumStats"></div>
       <canvas id="sumchart"></canvas>
+      <div class="sumPb" id="sumPb" style="display:none"></div>
       <div class="hint" id="sumFtp" style="margin-top:8px"></div>
       <div id="stravaMsg"></div>
       <div class="actions">
@@ -3191,6 +3211,7 @@ async function saveRideToHistory(rd) {
   if (!rd.samples || rd.samples.length < 30) return;
   rd.id = rd.id || rd.start;
   try { await idb.putRide(Object.assign({}, rd, { sum: rideSummary(rd) })); } catch (e) { console.warn(e); toast('Fahrt konnte nicht im Verlauf gespeichert werden', 4000); }
+  if (typeof bkDir !== 'undefined' && bkDir) autoBackup(true);
 }
 const shortRoute = n => (n || '').replace(/ · [\d.]+ km.*$/, '').replace(/^Karlsruhe · /, '');
 async function openHistory() {
@@ -3219,13 +3240,47 @@ async function openHistory() {
 }
 $('#btnHist').onclick = () => { if (ride.state === 'running') return toast('Während der Fahrt nicht möglich – erst pausieren oder beenden.'); $('#summary').style.display = 'none'; openHistory(); };
 $('#histClose').onclick = () => { $('#history').style.display = 'none'; };
-$('#bkSave').onclick = async () => {
-  const ls = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('kurbel.')) ls[k] = localStorage.getItem(k); } } catch (e) {}
+async function backupJson() {
+  const ls = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('kurbel.') && !k.startsWith('kurbel.places.')) ls[k] = localStorage.getItem(k); } } catch (e) {}
   let rides = []; try { rides = await idb.allRides(); } catch (e) {}
-  const d = new Date(), p2 = x => String(x).padStart(2, '0');
-  download(`Kurbeln-Backup_${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}.json`, JSON.stringify({ kurbelBackup: 1, created: d.toISOString(), localStorage: ls, rides }), 'application/json');
-  toast('Backup gespeichert (' + rides.length + ' Fahrten)');
+  return { n: rides.length, json: JSON.stringify({ kurbelBackup: 1, created: new Date().toISOString(), localStorage: ls, rides }) };
+}
+const bkDate = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+$('#bkSave').onclick = async () => {
+  const b = await backupJson();
+  download(`Kurbeln-Backup_${bkDate()}.json`, b.json, 'application/json');
+  toast('Backup gespeichert (' + b.n + ' Fahrten)');
 };
+// Automatisches Backup in einen Ordner (File System Access API, Chrome)
+let bkDir = null, bkPending = false;
+function bkInfo() {
+  const on = !!bkDir;
+  $('#bkAuto').textContent = on ? 'Anderen Ordner wählen' : 'Ordner wählen'; $('#bkAutoNow').style.display = on ? '' : 'none'; $('#bkAutoOff').style.display = on ? '' : 'none';
+  $('#bkAutoInfo').textContent = !window.showDirectoryPicker ? 'Geht nur in Chrome bzw. Edge am Computer.' : on ? `An: Ordner „${bkDir.name}“` + (settings.lastBk ? ` · letztes Backup ${new Date(settings.lastBk).toLocaleString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : '') + (bkPending ? ' · wartet auf Freigabe' : '') : 'Aus';
+}
+async function autoBackup(ask) {
+  if (!bkDir) return false;
+  try {
+    const o = { mode: 'readwrite' };
+    if (await bkDir.queryPermission(o) !== 'granted' && (!ask || await bkDir.requestPermission(o) !== 'granted')) { bkPending = true; bkInfo(); return false; }
+    const b = await backupJson();
+    for (const name of ['Kurbeln-Backup.json', `Kurbeln-Backup_${bkDate()}.json`]) { const fh = await bkDir.getFileHandle(name, { create: true }), w = await fh.createWritable(); await w.write(b.json); await w.close(); }
+    const old = []; for await (const [name] of bkDir.entries()) if (/^Kurbeln-Backup_\d{4}-\d\d-\d\d\.json$/.test(name)) old.push(name);
+    old.sort(); for (const name of old.slice(0, Math.max(0, old.length - 14))) { try { await bkDir.removeEntry(name); } catch (e) {} }
+    bkPending = false; settings.lastBk = Date.now(); saveSettings(); bkInfo(); return true;
+  } catch (e) { console.warn('Backup', e); toast('Automatisches Backup fehlgeschlagen: ' + e.message, 5000); return false; }
+}
+// Ohne Freigabe (z. B. nach Neustart des Browsers) beim nächsten Klick nachholen
+document.addEventListener('pointerdown', () => { if (bkPending && bkDir) autoBackup(true).then(ok => ok && toast('Backup gesichert in „' + bkDir.name + '“', 2500)); }, true);
+$('#bkAuto').onclick = async () => {
+  if (!window.showDirectoryPicker) return toast('Automatisches Backup geht nur in Chrome bzw. Edge am Computer.');
+  try { bkDir = await showDirectoryPicker({ id: 'kurbel-backup', mode: 'readwrite' }); await idb.set('bkdir', bkDir); if (await autoBackup(true)) toast('Automatisches Backup an – erstes Backup gespeichert.'); }
+  catch (e) { if (e.name !== 'AbortError') toast('Ordner konnte nicht gewählt werden: ' + e.message, 5000); }
+  bkInfo();
+};
+$('#bkAutoNow').onclick = async () => { if (await autoBackup(true)) toast('Backup gesichert in „' + bkDir.name + '“'); };
+$('#bkAutoOff').onclick = async () => { bkDir = null; bkPending = false; try { await idb.set('bkdir', null); } catch (e) {} bkInfo(); toast('Automatisches Backup aus.'); };
+(async () => { try { bkDir = (await idb.get('bkdir')) || null; } catch (e) {} bkInfo(); })();
 $('#bkLoad').onclick = () => { $('#fBackup').value = ''; $('#fBackup').click(); };
 $('#fBackup').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
@@ -3377,6 +3432,19 @@ function stats(rd) {
     avgV: dist / timer, maxV: Math.max(0, ...S.map(s => s[4])), b1: bestAvg(P, 60), b5: bestAvg(P, 300), b20: bestAvg(P, 1200), pm: pmStats(rd) };
 }
 let summaryRide = null;
+// ---------- Bestleistungen: neue Rekorde gegenüber allen früheren Fahrten ----------
+const PB_DUR = [5, 60, 300, 1200, 3600];
+async function showPbs(rd) {
+  const box = $('#sumPb'); box.style.display = 'none';
+  let rides = []; try { rides = (await idb.allRides()).filter(r => r.samples?.length && r.start < rd.start); } catch (e) { return; }
+  if (rides.length < 3 || summaryRide !== rd) return;
+  const prev = {}; for (const r of rides) { const m = mmp(r.samples.map(s => s[1]), PB_DUR); for (const k in m) prev[k] = Math.max(prev[k] || 0, m[k] || 0); }
+  const cur = mmp(rd.samples.map(s => s[1]), PB_DUR), pbs = PB_DUR.filter(t => cur[t] && prev[t] && cur[t] > prev[t]);
+  if (!pbs.length || summaryRide !== rd) return;
+  box.innerHTML = `<b>${pbs.length === 1 ? 'Neue Bestleistung!' : pbs.length + ' neue Bestleistungen!'}</b>` + pbs.map(t => `<div>${durLbl(t)}: ${Math.round(cur[t])} W <span style="opacity:.7">(bisher ${Math.round(prev[t])} W, +${Math.round(cur[t] - prev[t])})</span></div>`).join('');
+  box.style.display = '';
+  if (ride.state === 'done' && rd.start === ride.startTs) { beep(880, .12); setTimeout(() => beep(1175, .2), 160); }
+}
 function showSummary(rd) {
   summaryRide = rd; const st = stats(rd); $('#stravaMsg').innerHTML = '';
   $('#summary').style.display = 'flex';
@@ -3391,7 +3459,7 @@ function showSummary(rd) {
   const t20 = /FTP-Test 20/.test(rd.workoutName || '') && st.b20, newFtp = rd.ramp && st.b1 ? Math.round(st.b1 * .75) : t20 ? Math.round(st.b20 * .95) : 0;
   $('#sumFtp').textContent = rd.ramp && st.b1 ? `Rampentest: beste 1-min-Leistung ${st.b1} W → geschätzte FTP ≈ ${newFtp} W (75 %). Im Setup übernehmen?` : t20 ? `20-min-Test: bester 20-min-Schnitt ${st.b20} W → geschätzte FTP ≈ ${newFtp} W (95 %). Im Setup übernehmen?` : '';
   if (newFtp) { const b = document.createElement('button'); b.textContent = 'FTP übernehmen'; b.style.marginLeft = '8px'; b.onclick = () => { settings.ftp = newFtp; saveSettings(); loadSetup(); b.textContent = '✓ übernommen'; }; $('#sumFtp').appendChild(b); }
-  drawSummaryChart(rd);
+  drawSummaryChart(rd); showPbs(rd);
 }
 function drawSummaryChart(rd) {
   const c = $('#sumchart'), g = c.getContext('2d'), [W, H] = fitCanvas(c); g.clearRect(0, 0, W, H);
@@ -3965,6 +4033,45 @@ function barChart(el, data, o = {}) {
   el.querySelectorAll('.dHit').forEach(r => { r.onmousemove = e => tipShow(e, data[r.dataset.i].tip); r.onmouseleave = tipHide; });
 }
 const formLabel = t => t > 15 ? ['Sehr frisch', 'Gut erholt – ideal für Test oder Rennen. Länger so heißt aber: Fitness sinkt.'] : t > 5 ? ['Frisch', 'Erholt und bereit für harte Einheiten.'] : t > -10 ? ['Ausgeglichen', 'Gute Balance aus Training und Erholung.'] : t > -30 ? ['Im Aufbau', 'Du trainierst produktiv – auf ausreichend Schlaf und Erholungstage achten.'] : ['Sehr ermüdet', 'Hohes Risiko für Übertraining – ein paar lockere Tage einlegen.'];
+// ---------- Wochenziel ----------
+const weekStart = t => { const x = new Date(t); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x.getTime(); };
+function renderGoal(rides) {
+  const g = settings.weekGoal || 0, w0 = weekStart(Date.now()), rs = rides.filter(r => r.start >= w0);
+  const h = rs.reduce((a, r) => a + r.sum.timer, 0) / 3600, tss = rs.reduce((a, r) => a + r.sum.tss, 0), f = x => x.toFixed(1).replace('.', ',');
+  const days = Array.from({ length: 7 }, (_, i) => rs.filter(r => r.start >= w0 + i * 864e5 && r.start < w0 + (i + 1) * 864e5).reduce((a, r) => a + r.sum.timer, 0) / 3600);
+  const mx = Math.max(1.5, ...days), left = Math.max(0, g - h), dLeft = 7 - ((new Date().getDay() + 6) % 7);
+  $('#dGoal').innerHTML = `<div class="goalBig">${f(h)} h<span>${g ? 'von ' + f(g) + ' h' : 'diese Woche'} · ${rs.length} ${rs.length === 1 ? 'Fahrt' : 'Fahrten'} · ${Math.round(tss)} TSS</span></div>
+    ${g ? `<div class="goalBar"><i style="width:${Math.min(100, h / g * 100)}%"></i></div><p class="sub">${left <= 0 ? 'Wochenziel geschafft – stark!' : 'Noch ' + f(left) + ' h in ' + dLeft + (dLeft === 1 ? ' Tag' : ' Tagen') + (dLeft > 0 ? ' (≈ ' + Math.round(left / dLeft * 60) + ' min pro Tag)' : '') + '.'}</p>` : '<p class="sub">Setz dir ein Ziel – dann siehst du hier deinen Fortschritt.</p>'}
+    <div class="goalDays">${days.map((d, i) => `<div><b><i style="height:${d / mx * 100}%"></i></b>${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][i]}</div>`).join('')}</div>
+    <div class="goalSet">Ziel <input type="number" id="goalIn" min="0" max="30" step="0.5" value="${g || ''}" placeholder="z. B. 5"> Stunden pro Woche</div>`;
+  $('#goalIn').onchange = e => { settings.weekGoal = clamp(+e.target.value || 0, 0, 30); saveSettings(); renderGoal(rides); };
+}
+// ---------- Kalender ----------
+let calRides = [], calMonth = null;
+function renderCal() {
+  const now = new Date(); if (!calMonth) calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const y = calMonth.getFullYear(), m = calMonth.getMonth(), first = new Date(y, m, 1), off = (first.getDay() + 6) % 7, start = new Date(y, m, 1 - off);
+  $('#calTitle').textContent = first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+  const dayKey = t => new Date(t).toDateString(), byDay = {};
+  calRides.forEach(r => (byDay[dayKey(r.start)] ||= []).push(r));
+  let html = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => `<div class="cw">${d}</div>`).join(''), mh = 0, mt = 0, mn = 0;
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = d.toDateString(), rs = byDay[k] || [], inM = d.getMonth() === m;
+    if (i >= 35 && d.getMonth() !== m) break;
+    const tss = rs.reduce((a, r) => a + r.sum.tss, 0); if (inM) { mh += rs.reduce((a, r) => a + r.sum.timer, 0); mt += tss; mn += rs.length; }
+    const sz = rs.length ? Math.round(6 + Math.min(10, tss / 12)) : 0;
+    html += `<div class="cd${inM ? '' : ' out'}${k === now.toDateString() ? ' today' : ''}${rs.length ? ' has' : ''}" data-day="${k}">${d.getDate()}${rs.length ? `<i style="width:${sz}px;height:${sz}px"></i>` : ''}</div>`;
+  }
+  $('#dCal').innerHTML = `<div class="calGrid">${html}</div><div class="calSum">${mn} ${mn === 1 ? 'Fahrt' : 'Fahrten'} · ${(mh / 3600).toFixed(1).replace('.', ',')} h · ${Math.round(mt)} TSS in diesem Monat</div>`;
+  $('#dCal').querySelectorAll('.cd.has').forEach(c => {
+    const rs = byDay[c.dataset.day];
+    c.onmousemove = e => tipShow(e, rs.map(r => `<b>${esc(shortRoute(r.routeName))}${r.workoutName ? ' · ' + esc(r.workoutName) : ''}</b><div>${fmtT(r.sum.timer)} · ${Math.round(r.sum.np)} W NP · ${Math.round(r.sum.tss)} TSS</div>`).join(''));
+    c.onmouseleave = tipHide;
+    c.onclick = () => { tipHide(); $('#dashDlg').style.display = 'none'; showSummary(rs[rs.length - 1]); };
+  });
+}
+$('#calPrev').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCal(); };
+$('#calNext').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCal(); };
 // ---------- VO2max-Schätzung (Sitko et al. 2021: VO2max ≈ 16,6 + 8,87 × beste 5-min-Leistung in W/kg) ----------
 function vo2Series(rides) {
   const kg = settings.weight || 75, day = 864e5, rs = rides.slice().sort((a, b) => a.start - b.start);
@@ -4039,7 +4146,7 @@ async function openDash() {
   const est = ftpEstimate(rides, settings.ftp), P = pmc(rides), last = P[P.length - 1] || { ctl: 0, atl: 0, tsb: 0 }, [fl, ft] = formLabel(last.tsb);
   const wkg = v => (v / settings.weight).toFixed(2).replace('.', ',');
   const vo2 = vo2Series(rides);
-  renderCoach(rides, P);
+  renderCoach(rides, P); renderGoal(rides); calRides = rides; renderCal();
   $('#dTiles').innerHTML = `
     <div class="dTile"><small>FTP (eingetragen)</small><b>${settings.ftp}<span> W</span></b><em>${wkg(settings.ftp)} W/kg</em></div>
     <div class="dTile${est.ftp ? '' : ' muted'}"><small>FTP-Schätzung <span class="i" data-tip="${esc(est.how)}">i</span></small><b>${est.ftp ? est.ftp + '<span> W</span>' : '–'}</b><em>${est.ftp ? 'Zuverlässigkeit: ' + est.level : 'zu wenig Daten'}</em>${est.ftp && Math.abs(est.ftp - settings.ftp) >= 3 ? `<button class="dBtn" id="dUseFtp">${est.ftp} W übernehmen</button>` : ''}</div>

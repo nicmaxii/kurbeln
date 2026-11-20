@@ -1356,7 +1356,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.3</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.4</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -3346,7 +3346,17 @@ function bestAvg(P, n) { if (P.length < n) return null; let s = 0, b = 0; for (l
 function npOf(P) { if (P.length < 30) return 0; const r = []; let s = 0; for (let i = 0; i < P.length; i++) { s += P[i]; if (i >= 30) s -= P[i - 30]; if (i >= 29) r.push(Math.pow(s / 30, 4)); } return Math.pow(r.reduce((a, b) => a + b, 0) / r.length, .25); }
 // Powermeter parallel zum Trainer aufgezeichnet (Index 7): Vergleich nur über Sekunden, in denen beide Werte da sind
 // Fahrten von vor dem Schalter „Einseitig ×2“ haben kein pmX2-Merkmal: dann gilt die aktuelle Einstellung (Werte wurden roh gespeichert)
-const pmFactor = rd => rd.pmX2 !== undefined ? 1 : settings.pmX2 ? 2 : 1;
+// Faktor für Powermeter-Werte einer Fahrt: 1, wenn beim Fahren schon verdoppelt wurde; sonst 2 bei einseitigem Powermeter
+// (Schalter an oder Powermeter misst über die Fahrt 40–60 % des Trainers)
+const pmFCache = new WeakMap();
+const pmFactor = rd => {
+  if (rd.pmX2) return 1;
+  if (pmFCache.has(rd)) return pmFCache.get(rd);
+  let f = settings.pmX2 ? 2 : 1;
+  const S = (rd.samples || []).filter(s => s[7] != null && s[1] > 90);
+  if (S.length > 60) { const q = S.reduce((a, s) => a + s[7], 0) / S.reduce((a, s) => a + s[1], 0); if (q > .4 && q < .6) f = 2; }
+  pmFCache.set(rd, f); return f;
+};
 function pmStats(rd) {
   const S = (rd.samples || []).filter(s => s[7] != null); if (S.length < 30) return null;
   const f = pmFactor(rd), T = S.map(s => s[1]), M = S.map(s => s[7] * f), avg = a => a.reduce((x, y) => x + y, 0) / a.length;

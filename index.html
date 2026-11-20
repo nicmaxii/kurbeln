@@ -1350,7 +1350,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.1</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.2</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1814,8 +1814,198 @@ const B = (type, o) => Object.assign({ type }, o);
 const fav = (id, name, desc, blocks, cat) => ({ id, name, desc, fav: true, cat, blocks, segs: blocksToSegs(blocks) });
 const WU = [W(600, .45, .75)], CD = W(480, .6, .4);
 const wk = (id, cat, name, desc, segs) => ({ id, cat, name, desc, segs });
-const WO_CATS = ['Zone 2', 'Tempo & Sweet Spot', 'Schwelle', 'VO2max', 'HIT', 'Sprint', 'Erholung', 'Test'];
-const WO_CAT_TIP = { 'Zone 2': 'Grundlage: lange, ruhig – baut Ausdauer und Fettstoffwechsel auf (60–75 % FTP)', 'Tempo & Sweet Spot': 'Zügig, aber gut machbar – viel Trainingseffekt pro Minute (76–93 % FTP)', 'Schwelle': 'Rund um die FTP – hebt deine Dauerleistung (95–105 % FTP)', 'VO2max': 'Harte 2–8-Minuten-Intervalle – hebt die maximale Sauerstoffaufnahme (106–120 % FTP)', 'HIT': 'Kurze, sehr harte Intervalle mit kurzen Pausen (30/30, 40/20, Tabata …)', 'Sprint': 'Maximale Kurzzeit-Leistung – mit langen Pausen', 'Erholung': 'Locker kurbeln, Beine lockern (< 55 % FTP)', 'Test': 'FTP bestimmen – danach FTP im Profil eintragen' };
+// ---------- Bibliothek: nachgebaute Workouts aus Max' Trainings-App ----------
+// Kurzschrift: 10m@65 (10 min @ 65 % FTP), 30s@120, 10m@50-70 (Rampe), 3x[ … ] (Wiederholung), *@65 (füllt auf die Gesamtdauer auf), 20m@F (frei, ERG aus)
+const LIB_MAC = { WU: '4m@45-58 6m@58-68 1m@65 2m@84 2m@88 2m@92 2m@62', W2: '10m@45-68', CD: '5m@65-55 3m@50-40', C2: '5m@60-45' };
+function libParse(str) {
+  const tk = str.replace(/\[/g, ' [ ').replace(/\]/g, ' ] ').trim().split(/\s+/).flatMap(t => LIB_MAC[t] ? LIB_MAC[t].split(' ') : [t]);
+  let i = 0;
+  const seq = () => {
+    const out = [];
+    while (i < tk.length && tk[i] !== ']') {
+      const t = tk[i++]; let m;
+      if ((m = t.match(/^(\d+)x$/))) { i++; const body = seq(); i++; for (let k = 0; k < +m[1]; k++) out.push(...body.map(s => Object.assign({}, s))); }
+      else if ((m = t.match(/^(\*|\d+)(m|s)?@(F|\d+)(?:-(\d+))?$/))) { const dur = m[1] === '*' ? null : +m[1] * (m[2] === 's' ? 1 : 60); out.push(m[3] === 'F' ? W(dur, 0, 0, { free: true }) : W(dur, m[3] / 100, (m[4] ?? m[3]) / 100)); }
+      else throw new Error('Workout-Kurzschrift: ' + t);
+    }
+    return out;
+  };
+  return seq();
+}
+const LIB = [
+  ['Rennen', 'FTP Ramp Test', 22, '5m@45 1m@55 1m@61 1m@67 1m@73 1m@79 1m@85 1m@91 1m@97 1m@103 1m@109 1m@115 1m@121 1m@127 1m@133 1m@139 1m@145 1m@151', 'Jede Minute etwas schwerer, bis nichts mehr geht. FTP ≈ 75 % der besten Minute.'],
+  ['HIT', '13x30/30 Time Crunch', 30, 'W2 2m@70 13x[30s@120 30s@50] *@65 C2'],
+  ['HIT', 'HIT - Development Zone (EB): 4 x 3 min (Time Crunch)', 30, '6m@45-68 4x[3m@112 2m@55] 4m@60-45'],
+  ['LIT', 'LIT - 0h30 min', 30, '30m@65'],
+  ['HIT', '6x20sec FatMax Time Crunch', 30, '4m@50-65 6x[20s@150 200s@72] *@72 3m@60-45'],
+  ['Rennen', 'IM - immediate race preparation', 35, '12m@55-68 3x[3m@85 3m@58] *@66'],
+  ['Rennen', '8-Minute FTP Test', 40, '3m@45 9m@55-68 8m@F 8m@60 8m@45 *@62', '8 min so hart wie möglich (ERG aus). FTP ≈ 90 % des 8-min-Schnitts.'],
+  ['LIT', 'LIT - 0h40 Pyramid', 40, '20m@60-75 20m@75-62'],
+  ['MIT', 'MIT - Warm-Up Time Trial (in TT Position)', 41, '12m@55-65 3x[1m@85 30s@65] 2m@65 3m@88 3m@65 2x[1m@100 1m@65] 4m@65 20s@140 3m@65 10s@160 *@60'],
+  ['LIT', 'LIT - 0h45 min', 45, '45m@65'],
+  ['LIT', 'LIT - 0h50 min', 50, '50m@65'],
+  ['LIT', 'Motor Skills – 0h50 min 4 x 30s One-Legged', 50, '50m@65', 'Locker, dazwischen 4× 30 s pro Bein einbeinig treten (das andere Bein ruht auf dem Rahmen).'],
+  ['Rennen', 'Olympic Distance – Final Race Preparation', 53, '12m@60-68 3x[3m@88 3m@58] 3x[1m@102 4m@65] *@55'],
+  ['LIT', '1h Gravel/MTB Technique', 60, '60m@70', 'Gleichmäßig in Zone 2 – Fokus auf runden Tritt und ruhigen Oberkörper.'],
+  ['Rennen', '20-Minute FTP Test', 60, '10m@50-68 3x[20s@130 40s@60] 3m@65 5m@90 8m@65 20m@F 10m@45 *@65', '20 min so hart wie möglich (ERG aus). FTP ≈ 95 % des 20-min-Schnitts.'],
+  ['LIT', 'Short HEAT', 60, '5m@50 10m@60-72 15m@88 *@55', 'Hitzetraining: warm anziehen bzw. ohne Ventilator, viel trinken.'],
+  ['HIT', 'HIIT 2x(6x30/30s)', 60, 'W2 3m@70-85 1m@90 2x[6x[30s@125 30s@50] 5m@65] *@65'],
+  ['HIT', 'HIIT 3x(6x30/30s)', 60, 'W2 3m@70-85 1m@90 3x[6x[30s@125 30s@50] 4m@65] *@65'],
+  ['HIT', 'HIIT 3x(8x30/30s)', 60, 'W2 3m@70-85 1m@90 3x[8x[30s@125 30s@50] 4m@65] *@65'],
+  ['HIT', 'HIT - IE: 3x7x(30/15)', 60, 'WU 3x[7x[30s@120 15s@50] 3m@60] *@65 CD'],
+  ['LIT', 'LIT - 1h - Double Pyramid', 60, '15m@60-75 15m@75-60 15m@60-75 15m@75-60'],
+  ['LIT', 'LIT - 1h Pyramid', 60, '30m@60-75 30m@75-60'],
+  ['LIT', 'LIT 1h', 60, '60m@65'],
+  ['HIT', 'SIT - LIT Booster: 7x30s Sprint', 60, '10m@50-65 7x[30s@170 270s@65] *@65 5m@60-45'],
+  ['HIT', 'HIIT 2x(8x30/30s)', 64, 'W2 3m@70-85 1m@90 2x[8x[30s@125 30s@50] 5m@65] *@65'],
+  ['HIT', 'HIT - EB: 3x4 min + 10min SwSp', 68, 'WU 3x[4m@112 4m@55] 3m@65 10m@90 *@65 CD'],
+  ['HIT', '4 x Over Under (3m30 ↑ /3m30 ↓)', 69, 'WU 4x[210s@92 210s@105] *@65 CD'],
+  ['HIT', '9x20sec FatMax', 70, 'W2 1m@90 9x[20s@150 280s@72] *@68 CD'],
+  ['HIT', 'HIT - Development Zone: 2x8 min', 70, 'WU 2x[8m@104 4m@60] *@65 CD'],
+  ['HIT', 'HIT - EB: 4x4 min', 70, 'WU 4x[4m@112 4m@55] *@65 CD'],
+  ['HIT', 'HIT - IE: 3x9x(30/15)', 73, 'WU 3x[9x[30s@120 15s@50] 4m@58] *@65 CD'],
+  ['MIT', '3 x 10 min Fatmax/Zone 2', 75, 'WU 3x[10m@80 4m@65] *@65 CD'],
+  ['MIT', '3x10 min Sweet Spot', 75, '15m@50-70 3x[10m@90 5m@60] *@65 CD'],
+  ['HIT', 'HIT - DEC: 4x4 min', 75, 'WU 4x[1m@120 3m@103 4m@55] *@65 CD'],
+  ['HIT', 'HIT - IE: 3x11x(30/15)', 75, 'WU 3x[11x[30s@120 15s@50] 4m@58] *@65 CD'],
+  ['HIT', 'HIT - IE: 3x6x30/30 + 8 min Sweet Spot', 75, 'WU 3x[6x[30s@120 30s@50] 4m@58] 8m@90 *@65 CD'],
+  ['HIT', 'HIT - IE: 3x8x40/20', 75, 'WU 3x[8x[40s@118 20s@50] 4m@58] *@65 CD'],
+  ['LIT', 'LIT 1h15', 75, '75m@65'],
+  ['MIT', 'MIT - Sweet Spot 2x3x5 min', 75, 'WU 2x[3x[5m@90 1m@60] 6m@55] *@65 CD'],
+  ['MIT', 'MIT - Time Trial Priming (in TT Position)', 75, 'WU 3x[2m@95 3m@65] 15m@68 *@65 CD'],
+  ['LIT', 'Bike - Cadence Skills', 75, '15m@50-70 6x[1m@72 4m@68] *@68 CD', 'Locker, dazu 6× 1 min mit hoher Trittfrequenz (110+ U/min).'],
+  ['HIT', 'HIT - EB: 4x6 min', 78, 'WU 4x[6m@108 4m@55] *@65 CD'],
+  ['HIT', 'HIT - IE 3x6x40/20', 78, 'WU 3x[6x[40s@118 20s@50] 5m@58] *@65 CD'],
+  ['MIT', 'MIT - SwSp 4x8 min', 78, 'WU 4x[8m@91 3m@60] *@65 CD'],
+  ['HIT', 'HIIT 3x(10x30/30s)', 80, 'W2 3m@70-85 1m@90 3x[10x[30s@125 30s@50] 4m@65] *@65'],
+  ['HIT', 'HIT - EB: 4x5 min', 80, 'WU 4x[5m@106 5m@55] *@65 CD'],
+  ['HIT', 'HIT - intermittent intervals: 3x13x(30/15)', 80, 'WU 3x[13x[30s@120 15s@50] 4m@58] *@65 CD'],
+  ['HIT', 'LC - 4 x Lactate Clearance', 80, 'WU 4x[30s@135 4m@90 4m@60] *@65 CD'],
+  ['LIT', 'LIT - 1:20h - Double Pyramid', 80, '5m@50 15m@60-75 15m@75-62 15m@62-75 15m@75-60 *@50'],
+  ['MIT', 'MIT - Sweet Spot: 3x6 min', 80, 'WU 3x[6m@92 4m@60] *@65 CD'],
+  ['HIT', 'HIT - Development Zone (EB): 3x8 min', 82, 'WU 3x[8m@104 4m@55] *@65 CD'],
+  ['HIT', '6 x Over-Unders (3m30 ↑ / 3m30 ↓)', 83, 'WU 6x[210s@92 210s@105] *@65 CD'],
+  ['HIT', 'HIT - DEC: 5x4 min', 84, 'WU 5x[1m@120 3m@103 4m@55] *@65 CD'],
+  ['HIT', 'HIT - DEC: 5x4 min (hart)', 84, 'WU 5x[1m@125 3m@105 4m@55] *@65 CD'],
+  ['HIT', 'HIT - IE/SwSp: 3x8x40/20+SwSp', 89, 'WU 3x[8x[40s@118 20s@50] 4m@58] 10m@90 *@65 CD'],
+  ['MIT', '3 x 15 min Fatmax/Zone 2', 90, 'WU 3x[15m@80 5m@65] *@65 CD'],
+  ['MIT', '4 x 10 min Fatmax/Zone 2', 90, 'WU 4x[10m@80 4m@65] *@65 CD'],
+  ['HIT', 'Base – Neuromuscular Force Sprints (Torque)', 90, 'W2 6x[10s@180 50s@55 9m@68] *@68 CD', 'Kraftsprints aus niedriger Trittfrequenz (schwerer Gang, fast aus dem Stand).'],
+  ['LIT', 'Gravel/MTB LIT 1:30 h', 90, '90m@65'],
+  ['HIT', 'HIIT 3x(12x30/30s)', 90, 'W2 3m@70-85 1m@90 3x[12x[30s@125 30s@50] 4m@65] *@65'],
+  ['HIT', 'HIT - DEC: 4x4 min + Sweet Spot', 90, 'WU 4x[1m@120 3m@103 4m@55] 2m@65 12m@90 *@65 CD'],
+  ['HIT', 'HIT - DEC: 5x5 min', 90, 'WU 5x[1m@120 4m@106 4m@55] *@65 CD'],
+  ['HIT', 'HIT - development zone (EB): 4x8 min', 90, 'WU 4x[8m@104 4m@55] *@65 CD'],
+  ['HIT', 'HIT - EB: 5x5 min', 90, 'WU 5x[5m@106 4m@55] *@65 CD'],
+  ['HIT', 'HIT - HITvar (5x5min)', 90, 'WU 5x[5x[30s@118 30s@100] 4m@55] *@65 CD'],
+  ['HIT', 'HIT - Intermittent Intervals 3x10x30/30', 90, 'WU 3x[10x[30s@120 30s@50] 4m@58] *@65 CD'],
+  ['HIT', 'HIT - IE 3x10x40/20', 90, 'WU 3x[10x[40s@118 20s@50] 4m@58] *@65 CD'],
+  ['HIT', 'HIT - IE 3x5x15/45', 90, 'WU 3x[5x[15s@140 45s@55] 8m@60] *@65 CD'],
+  ['HIT', 'HIT - IE: 3x8x30/30 + 8min SwSp', 90, 'WU 3x[8x[30s@120 30s@50] 4m@58] 8m@90 *@65 CD'],
+  ['HIT', 'LC - 7 x Over-Under (3m30 ↑ /3m30 ↓)', 90, 'WU 7x[210s@92 210s@105] *@65 CD'],
+  ['LIT', 'LIT - 1:30h - Pyramid', 90, '15m@60-75 15m@75-62 15m@62-75 15m@75-62 15m@62-75 15m@75-60'],
+  ['LIT', 'LIT - 1h30 (with 6x6" accelerations)', 90, '20m@60 6x[6s@180 2m@62] *@62 3m@55'],
+  ['LIT', 'LIT - 1h30 including Fatmax Interval', 90, '5m@50 10m@60-72 *@68 15m@80 7m@68 7m@80 3m@55-45'],
+  ['LIT', 'LIT 1:30h', 90, '90m@65'],
+  ['LIT', 'LIT+ 1:30', 90, '90m@74'],
+  ['MIT', 'MIT - KrA 3x10 min', 90, 'WU 3x[10m@85 5m@55] *@65 CD', 'Kraftausdauer: Intervalle mit niedriger Trittfrequenz (55–65 U/min).'],
+  ['Rennen', 'MIT - Race Priming', 90, '5m@50 10m@55-70 25m@68 20m@72 *@70 5m@55'],
+  ['MIT', 'MIT - Sweet Spot 3x12 min', 90, 'WU 3x[12m@91 4m@58] *@65 CD'],
+  ['LIT', 'Motor Skills – 1h30 min 4 x 30s One-Legged', 90, '90m@65', 'Locker, dazwischen 4× 30 s pro Bein einbeinig treten.'],
+  ['HIT', 'SIT - Sprint Training (5x20")', 90, '10m@50-65 5x[20s@180 580s@65] *@65 5m@60-45'],
+  ['MIT', 'Threshold Spikes (High Cadence)', 90, 'WU 3x[3x[15s@130 165s@92] 4m@60] *@65 CD'],
+  ['LIT', 'Zone 2 Ride · 1:30 h', 90, '5m@50-68 85m@70'],
+  ['Rennen', 'OD Race Priming', 91, '20m@55-68 3x[3m@88 3m@55] 5m@50 4x[20s@140 40s@55] *@50'],
+  ['Rennen', 'IM - Race Primer', 91, '20m@68 3x[3m@82 3m@55] 5m@50 3x[30s@100 1m@55] *@55'],
+  ['HIT', 'HIT - DEC: 4x5 min + Sweet Spot', 94, 'WU 4x[1m@120 4m@105 4m@55] 2m@65 15m@90 *@65 CD'],
+  ['HIT', 'HIT - DEC: 6x4 min', 95, 'WU 6x[1m@120 3m@103 4m@55] *@65 CD'],
+  ['HIT', 'HIT - HIT_EB (6x4 min)', 95, 'WU 6x[4m@106 4m@55] *@65 CD'],
+  ['HIT', 'HIT - DEC: 5x4 min + Sweet Spot', 98, 'WU 5x[1m@120 3m@103 4m@55] 2m@65 15m@90 *@65 CD'],
+  ['HIT', 'HIT - development zone (EB): 4x6 min + Sweet Spot', 98, 'WU 4x[6m@108 4m@55] 2m@65 15m@90 *@65 CD'],
+  ['Rennen', 'Race Priming', 99, '20m@55-68 4x[3m@88 3m@55] 5m@50 4x[20s@140 40s@55] *@50'],
+  ['MIT', 'MIT Raceprep 4x8 min + 3x1min EB', 99, 'WU 4x[8m@88 4m@58] 3x[1m@105 2m@58] *@65 CD'],
+  ['HIT', 'HIT - IE: 4x10x40/20', 105, 'WU 4x[10x[40s@118 20s@50] 5m@58] *@65 CD'],
+  ['HIT', 'LC - 2 x 4 x Over-Under (1m30 ↑ / 3m30 ↓)', 105, 'W2 15m@65 2x[4x[90s@108 210s@90] 6m@60] *@65 CD'],
+  ['MIT', 'MIT - Strength Endurance 3x15 min', 105, 'WU 3x[15m@85 5m@55] *@65 CD', 'Kraftausdauer: Intervalle mit niedriger Trittfrequenz (55–65 U/min).'],
+  ['MIT', 'MIT - Sweet Spot: 3x16', 105, 'WU 3x[16m@90 4m@58] *@65 CD'],
+  ['MIT', 'Threshold Development (4x10) – Aerobic Power', 106, '15m@50-70 3m@88 3m@65 4x[10m@95 3m@58] *@65 CD'],
+  ['LIT', 'Gravel/Road LIT with Cadence Sprints', 108, '25m@65 8x[10s@160 290s@65] *@65'],
+  ['MIT', '4 x 15min Fatmax/Zone 2', 110, 'WU 4x[15m@80 5m@65] *@65 CD'],
+  ['LIT', 'Long HEAT', 110, '15m@50 30m@60-72 10m@88 *@55', 'Hitzetraining: warm anziehen bzw. ohne Ventilator, viel trinken.'],
+  ['HIT', 'HIT - Development Zone (EB): 4x5 min + 15 min Sweet Spot', 110, 'WU 4x[5m@106 4m@55] 2m@65 15m@90 *@65 CD'],
+  ['MIT', 'Threshold Ladder (3x15) – Aerobic Power', 110, '15m@50-70 5m@88 5m@65 3x[15m@93 5m@60] *@65 CD'],
+  ['HIT', 'Ride - 4 x Lactate Clearance', 112, '30m@55-68 4x[30s@135 4m@90 4m@60] *@58 CD'],
+  ['HIT', 'Development Zone (EB): 4x6 min + Sweet Spot/Power Endurance (KA3)', 117, 'WU 4x[6m@100 4m@55] 2m@65 20m@88 *@65 CD'],
+  ['LIT', 'Gravel/MTB LIT 2h', 120, '120m@65'],
+  ['HIT', 'HIT - 6 x Race-Winning Intervals', 120, '30m@55-65 6x[20s@150 3m@88 3m@60] *@62'],
+  ['HIT', 'HIT - HITdec (2x(3x5min))', 120, 'WU 2x[3x[1m@120 4m@103 4m@55] 8m@62] *@65 CD'],
+  ['HIT', 'HIT - HITinc (2x(3x5))', 120, 'WU 2x[3x[4m@103 1m@120 4m@55] 8m@62] *@65 CD'],
+  ['HIT', 'HIT - IE: 4x10x30/30 + 15 min Sweet Spot', 120, 'WU 4x[10x[30s@120 30s@50] 4m@58] 15m@90 *@65 CD'],
+  ['HIT', 'LC - Intermittent Fatmax (1 x 60 min)', 120, 'W2 15m@65 12x[20s@130 280s@80] *@65 CD'],
+  ['HIT', 'LC Training - IE/SwSp in WorldTour Style', 120, 'WU 2x[5x[30s@130 270s@90] 8m@60] *@65 CD'],
+  ['LIT', 'LIT - 2h', 120, '120m@65'],
+  ['LIT', 'LIT+ 2:00', 120, '120m@74'],
+  ['MIT', 'MIT - SwSp (5x6 min with 30s intense start)', 120, 'WU 5x[30s@130 330s@90 4m@58] *@65 CD'],
+  ['MIT', 'MIT - Sweet Spot Pyramid (15-15-10-5)', 120, 'WU 15m@90 4m@60 15m@90 4m@60 10m@91 4m@60 5m@93 *@65 CD'],
+  ['MIT', 'MIT - Sweet Spot: 3x20 min', 120, 'WU 3x[20m@90 5m@58] *@65 CD'],
+  ['MIT', 'MIT - Sweet Spot: 4x10 (with 30s intense start)', 120, 'WU 4x[30s@130 570s@90 4m@58] *@65 CD'],
+  ['HIT', 'SIT - Booster LIT - 2h Sprint Endurance (5x30s)', 120, '10m@50-65 5x[30s@160 270s@65] *@65 5m@55-45'],
+  ['HIT', 'Threshold Over-Unders (Lactate Clearance)', 120, '15m@50-70 5m@90 5m@55 3x[4x[1m@105 2m@92] 5m@58] *@65 CD'],
+  ['LIT', 'Zone 2 Ride · 2 h', 120, '5m@50-68 115m@70'],
+  ['HIT', 'HIIT 3x(5x1/1 min)', 125, 'W2 30m@65 3m@75-88 3x[5x[1m@115 1m@55] 5m@60] *@65'],
+  ['HIT', 'HIT - Development Zone (EB): 4x6 min uphill', 130, 'W2 30m@65 4x[6m@100 3m@55] *@65 CD'],
+  ['MIT', 'MIT - Half-Distance Stair (30-20-10)', 130, 'W2 20m@65 30m@83 4m@62 20m@85 4m@62 10m@88 *@65 CD'],
+  ['MIT', 'Development Zone (EB) - Torque: 5x8 min (hill)', 135, 'W2 25m@65 5x[8m@95 3m@55] *@65 CD', 'Intervalle mit niedriger Trittfrequenz (55–65 U/min), wie am Berg.'],
+  ['HIT', 'HIT - Development Zone (EB): 4 x 8 min on a climb', 138, 'W2 25m@65 4x[8m@100 4m@55] *@65 CD'],
+  ['Rennen', 'Hard IM Intervals 4x(5+10min)', 140, 'W2 20m@65 4x[5m@88 10m@80 3m@58] *@65 CD'],
+  ['Rennen', 'Hard Half Ironman Intervals 4x(4+8min)', 143, 'W2 20m@65 4x[4m@92 8m@84 3m@58] *@65 CD'],
+  ['Rennen', 'IM Stair 20-15-10', 145, '60m@65 20m@80 4m@60 15m@82 4m@60 10m@85 *@65'],
+  ['MIT', 'MIT - Double Sweet Spot Pyramid (15-10-5)', 147, 'WU 15m@90 4m@60 10m@91 4m@60 5m@93 6m@60 15m@90 4m@60 10m@91 4m@60 5m@93 *@55'],
+  ['LIT', '2h30 - Zone 2', 150, '5m@50-68 145m@70'],
+  ['Rennen', '3x15 min Ironman Race-Pace Intervals', 150, 'W2 30m@60-68 3x[15m@80 3m@58] *@68'],
+  ['HIT', 'HIT - IE 3x20x30/30', 150, 'WU 3x[20x[30s@120 30s@50] 5m@58] *@65 CD'],
+  ['MIT', 'Strength Endurance 3 Ride 3x10 min', 150, 'W2 3x[10m@85 5m@58] *@65 CD', 'Kraftausdauer: Intervalle mit niedriger Trittfrequenz (55–65 U/min).'],
+  ['LIT', 'LIT - 2h30', 150, '150m@65'],
+  ['MIT', 'MIT - 6x5 Strength Endurance Swim Speed with passive rest + 15 with Strength Endurance', 150, 'WU 6x[5m@85 1m@40] 10m@65 15m@85 *@65 CD'],
+  ['MIT', 'MIT - Strength Endurance 3x20 min', 150, 'W2 20m@60-68 3x[20m@85 5m@55] *@60 CD'],
+  ['MIT', 'MIT - Primer + Strength Endurance 3x15 min', 150, 'WU 4x[15s@140 2m@60] 3x[15m@85 5m@58] *@65 CD'],
+  ['Rennen', 'Race Day', 150, '5m@60-85 145m@88', 'Renntempo über die ganze Distanz.'],
+  ['MIT', 'MIT - Sweet Spot 4x15 min + 6x1 min development zone (EB)', 151, 'WU 4x[15m@90 4m@58] 6x[1m@105 2m@58] *@65 CD'],
+  ['HIT', 'HIT - Development Zone (EB): 5x10 min', 155, 'W2 20m@65 3m@85 3m@60 5x[10m@100 4m@55] *@65 CD'],
+  ['MIT', 'Strength Endurance 3 Ride 3x15 min', 165, 'W2 30m@60-68 3x[15m@85 5m@58] *@65 CD', 'Kraftausdauer: Intervalle mit niedriger Trittfrequenz (55–65 U/min).'],
+  ['MIT', 'Strength Endurance 3 (KA3) Ride 4x10 min', 165, 'W2 30m@60-68 4x[10m@85 5m@58] *@65 CD', 'Kraftausdauer: Intervalle mit niedriger Trittfrequenz (55–65 U/min).'],
+  ['HIT', 'HIT - development zone (EB): 5x8 min + 4x4 min VO2max', 167, 'W2 20m@65 5x[8m@100 3m@55] 5m@65 4x[4m@112 3m@55] *@65 CD'],
+  ['Rennen', 'IM Intervals 4x20 min', 180, '60m@65 4x[20m@80 4m@58] *@65'],
+  ['LIT', 'LIT - 3h', 180, '180m@65'],
+  ['MIT', 'LIT with 4 x 15-min Fatmax intervals', 180, '60m@65 4x[15m@80 4m@58] *@65'],
+  ['LIT', 'Medium (Hilly) Ride · 3 h', 180, '180m@70'],
+  ['MIT', 'Durability Session I', 187, '60m@65 25m@88 15m@65 5x[1m@100 1m@85] 15m@65 3x[3m@95 2m@60] *@65'],
+  ['MIT', 'Durability Session II', 188, '30m@65 25m@88 15m@65 5x[1m@100 1m@85] 15m@65 3x[3m@95 2m@60] 15m@65 4x[20s@140 1m@90] *@65'],
+  ['MIT', 'MIT - 3x10 min strength endurance 3 + half-distance ladder (20-15-10)', 190, '3x[10m@85 5m@62] 20m@65 20m@83 4m@62 15m@85 4m@62 10m@88 *@65'],
+  ['Rennen', 'IM Ladder 30-15-2x10min Race Prep', 195, '90m@65 30m@80 3m@58 15m@82 3m@58 10m@84 3m@58 10m@84 3m@58 *@65'],
+  ['LIT', 'LIT - 3h30', 210, '210m@65'],
+  ['LIT', 'Medium (Hilly) Ride · 3:30 h', 210, '210m@70'],
+  ['LIT', 'LIT - 4h', 240, '240m@65'],
+  ['LIT', 'Long (Hilly) Ride', 240, '240m@66'],
+  ['LIT', 'Long Ride + High Zone 2', 240, '5m@50-68 165m@68 65m@78 *@60'],
+  ['Rennen', 'Ironman Ladder 40-30-20-2x10min', 245, '90m@65 40m@80 4m@58 30m@81 4m@58 20m@82 4m@58 10m@84 4m@58 10m@84 *@65'],
+  ['Rennen', 'IM Step-Down 45-30-20-10 min', 265, '100m@65 45m@80 4m@58 30m@81 4m@58 20m@82 4m@58 10m@84 *@65'],
+  ['LIT', 'LIT - 4h30', 270, '270m@65'],
+  ['Rennen', 'IM Intervals 5x15min', 300, '90m@65 5x[15m@80 5m@60] *@65'],
+  ['LIT', 'LIT - 5h', 300, '300m@65'],
+  ['LIT', 'LIT - 5h30', 330, '330m@65'],
+  ['LIT', 'LIT - 6h', 360, '360m@65'],
+];
+const LIB_CATS = ['Bibliothek LIT', 'Bibliothek MIT', 'Bibliothek HIT', 'Bibliothek Rennen'];
+const libDesc = segs => { const hi = segs.filter(s => !s.free && Math.max(s.p0, s.p1) >= .84).reduce((a, s) => a + s.dur, 0); return hi ? Math.round(hi / 60) + ' min im Bereich Sweet Spot und härter' : 'Gleichmäßig in der Grundlage'; };
+const LIB_WORKOUTS = LIB.map(([c, name, T, spec, d]) => {
+  const segs = libParse(spec), rest = T * 60 - segs.reduce((a, s) => a + (s.dur || 0), 0), f = segs.find(s => s.dur == null);
+  if (f) f.dur = Math.max(0, rest);
+  const ok = segs.filter(s => s.dur > 0);
+  return wk('lib_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''), 'Bibliothek ' + c, name, d || libDesc(ok), ok);
+});
+const WO_CATS = ['Zone 2', 'Tempo & Sweet Spot', 'Schwelle', 'VO2max', 'HIT', 'Sprint', 'Erholung', 'Test', ...LIB_CATS];
+const WO_CAT_TIP = { 'Zone 2': 'Grundlage: lange, ruhig – baut Ausdauer und Fettstoffwechsel auf (60–75 % FTP)', 'Tempo & Sweet Spot': 'Zügig, aber gut machbar – viel Trainingseffekt pro Minute (76–93 % FTP)', 'Schwelle': 'Rund um die FTP – hebt deine Dauerleistung (95–105 % FTP)', 'VO2max': 'Harte 2–8-Minuten-Intervalle – hebt die maximale Sauerstoffaufnahme (106–120 % FTP)', 'HIT': 'Kurze, sehr harte Intervalle mit kurzen Pausen (30/30, 40/20, Tabata …)', 'Sprint': 'Maximale Kurzzeit-Leistung – mit langen Pausen', 'Erholung': 'Locker kurbeln, Beine lockern (< 55 % FTP)', 'Test': 'FTP bestimmen – danach FTP im Profil eintragen', 'Bibliothek LIT': 'Aus deiner Bibliothek: lange, lockere Grundlage (LIT)', 'Bibliothek MIT': 'Aus deiner Bibliothek: Fatmax, Sweet Spot, Kraftausdauer (MIT)', 'Bibliothek HIT': 'Aus deiner Bibliothek: Entwicklungsbereich, Intervalle, Laktat-Abbau (HIT, LC, SIT)', 'Bibliothek Rennen': 'Aus deiner Bibliothek: Tests, Wettkampf-Vorbereitung, Ironman-Tempo' };
 const FAV_WORKOUTS = [
   fav('z2_60', 'Zone 2 · 1 h', 'Rampe 10 min, 45 min Zone 2 (68 % FTP), 5 min ausrollen', [B('ramp', { dur: 600, p0: 50, p1: 68 }), B('steady', { dur: 2700, p: 68 }), B('ramp', { dur: 300, p0: 60, p1: 45 })], 'Zone 2'),
   fav('z2_90', 'Zone 2 · 1,5 h', 'Rampe 10 min, 75 min Zone 2 (68 % FTP), 5 min ausrollen', [B('ramp', { dur: 600, p0: 50, p1: 68 }), B('steady', { dur: 4500, p: 68 }), B('ramp', { dur: 300, p0: 60, p1: 45 })], 'Zone 2'),
@@ -1864,6 +2054,7 @@ const BUILTIN_WORKOUTS = [
   // Test
   wk('ramp', 'Test', 'FTP-Rampentest (+20 W/min)', 'Jede Minute +20 W bis nichts mehr geht. FTP ≈ 75 % der besten Minute', [W(300, 100, 150, { abs: true }), ...Array.from({ length: 30 }, (_, i) => W(60, 120 + i * 20, 120 + i * 20, { abs: true }))]),
   wk('ftp20', 'Test', 'FTP-Test 20 min', '20 min so hart wie möglich (ERG aus). FTP ≈ 95 % des 20-min-Schnitts', [...WU, ...reps(3, W(60, 1.1), W(60, .5)), W(300, .55), W(300, 1.05), W(600, .5), W(1200, 0, 0, { free: true }), W(600, .5, .4)]),
+  ...LIB_WORKOUTS,
 ].map(w => { w.ramp = w.id === 'ramp'; return w; });
 let importedWorkouts = LS.get('kurbel.workouts', []);
 let folderWorkouts = [];
@@ -3547,7 +3738,7 @@ function openPlan(mode) { // mode: undefined = aktiver Plan bzw. Übersicht, 'li
 
 // ---------- Auswahl-Karten (Strecken & Workouts) ----------
 const CAT_STYLE = { 'Plan': ['', '#edff9a'], 'Beliebt': ['', '#f2f2ee'], 'Frei': ['', '#f2f2ee'], 'Zone 2': ['', '#76796a'], 'Tempo & Sweet Spot': ['', '#a3ad6f'], 'Schwelle': ['', '#cfdf82'],
-  'VO2max': ['', '#edff9a'], 'HIT': ['', '#f7ffd2'], 'Sprint': ['', '#ffffff'], 'Erholung': ['', '#4a4a4f'], 'Test': ['', '#c9c9c0'] };
+  'VO2max': ['', '#edff9a'], 'HIT': ['', '#f7ffd2'], 'Sprint': ['', '#ffffff'], 'Erholung': ['', '#4a4a4f'], 'Test': ['', '#c9c9c0'], 'Bibliothek LIT': ['', '#76796a'], 'Bibliothek MIT': ['', '#a3ad6f'], 'Bibliothek HIT': ['', '#edff9a'], 'Bibliothek Rennen': ['', '#c9c9c0'] };
 const catEmoji = c => '', catColor = c => (CAT_STYLE[c] || [0, '#9a9a94'])[1];
 function woIF(wo) { // Intensität ≈ NP/FTP
   let a = 0, t = 0; for (const s of wo?.segs || []) { let p = s.free ? 0.9 : (s.p0 + s.p1) / 2; if (s.abs) p /= settings.ftp; a += s.dur * p ** 4; t += s.dur; }

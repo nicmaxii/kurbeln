@@ -380,6 +380,7 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 #routeInfo{display:none}
 /* Workout-Kategorien */
 #catRow.ccats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.dtip,.dtip b,.dtip div{color:var(--onsel)!important}
 .subcats{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 12px}.subcats button{border-radius:999px;padding:4px 11px;font-size:13px;font-weight:500;background:transparent;color:var(--tx2);border:1px solid var(--ln)}.subcats button:hover{color:var(--tx)}.subcats button.on,#setup .subcats button.on{background:var(--sel)!important;color:var(--onsel)!important;border-color:var(--sel)!important}
 .ccats button{border:0;border-radius:14px;padding:8px 12px;font-weight:800;font-size:14px;background:var(--s1);color:var(--tx);display:flex;align-items:center;gap:6px;box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--cc) 35%,#fff),0 1px 2px rgba(0,0,0,.05);transition:transform .1s}
 .ccats button:hover{transform:translateY(-2px)}
@@ -552,7 +553,7 @@ body,#landing,#setup .card.menu,#planDlg .card.menu,#calDlg .card,#dashDlg .card
 #setup .mhead .ver{font-size:11px;color:var(--tx2);margin-left:10px;font-family:var(--numfont)}
 body:not(.riding) footer,body:not(.riding) #viewSeg,body:not(.riding) #btnPip{display:none!important}
 @media (min-width:761px){
-  #setup .card.menu{width:min(1120px,100%)}
+  #setup .card.menu,#planDlg .card.menu,#history .card{width:min(1440px,100%)}
   #setup .rcard{flex-basis:250px!important}#setup .rprof{height:100px}#setup .rname{font-size:17px}#setup .rstats{font-size:13.5px}
   #setup .wgrid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}#setup .wprof{height:56px}#setup .wname{font-size:16.5px}
   #setup .planBanner{padding:18px 22px}#setup .pbText b{font-size:19px}
@@ -1397,7 +1398,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.1</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.2</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -3519,6 +3520,18 @@ function drawProfile() {
   if (r.cobbles?.length) { g.fillStyle = '#9a9a94'; r.cobbles.forEach(c => { const x0 = c.a / r.len * W, x1 = Math.max(x0 + 2, c.b / r.len * W); g.fillRect(x0, bot - 5 * (devicePixelRatio || 1), x1 - x0, 5 * (devicePixelRatio || 1)); }); }
   const dpr = devicePixelRatio || 1; g.font = (10 * dpr) + 'px sans-serif'; g.textAlign = 'center';
 }
+// Hover über einem Workout-Profil: Watt und Dauer des Abschnitts unter der Maus
+function woHover(c, getWo) {
+  c.addEventListener('mousemove', e => {
+    const wo = getWo(); if (!wo || wo.manual || !wo.segs?.length) return tipHide();
+    const r = c.getBoundingClientRect(), t = (e.clientX - r.left) / r.width * woTotal(wo), sa = segAt(wo, Math.max(0, t)); if (!sa) return tipHide();
+    const s = sa.s, ftp = settings.ftp, b = 1 + dayBias() / 100, w0 = segWatts(s, 0, ftp), w1 = segWatts(s, 1, ftp);
+    const pc = v => Math.round(v / ftp * 100) + ' %', ww = s.free ? 'frei (ERG aus)' : Math.round(w0 * b) === Math.round(w1 * b) ? Math.round(w0 * b) + ' W · ' + pc(w0) : Math.round(w0 * b) + ' → ' + Math.round(w1 * b) + ' W · ' + pc(w0) + ' → ' + pc(w1);
+    const IV = woIntervals(wo), iv = IV.find(v => t >= v.start && t < v.end);
+    tipShow(e, `<b>${ww}</b><div>${fmtT(s.dur)} · ab ${fmtT(sa.start)}${iv ? ' · Intervall ' + (IV.nSets > 1 && iv.nInSet > 1 ? iv.k + '/' + iv.nInSet + ', Serie ' + (iv.set + 1) : (IV.indexOf(iv) + 1) + '/' + IV.length) : ''}</div>`);
+  });
+  c.addEventListener('mouseleave', () => tipHide());
+}
 function drawWorkout(c, wo, opts = {}) {
   const g = c.getContext('2d'), [W, H] = fitCanvas(c); if (!W) return;
   g.clearRect(0, 0, W, H);
@@ -4641,6 +4654,7 @@ function toZWO(wo) {
 }
 const safeName = n => n.replace(/[\\/:*?"<>|]+/g, '-').trim().slice(0, 80) || 'Workout';
 // ---------- Workout ansehen ----------
+woHover($('#wpreview'), () => workoutById(settings.workoutId)); woHover($('#wvChart'), () => workoutById(woViewId)); woHover($('#epreview'), () => edWorkout());
 const woOwn = wo => wo && (wo.id.startsWith('imp_') || wo.id.startsWith('dir_'));
 let woViewId = null;
 function openWoView(id) {

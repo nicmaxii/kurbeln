@@ -40,7 +40,7 @@ Sie läuft in Chrome auf dem MacBook und wird über GitHub Pages veröffentlicht
 | Geist | `ghost`, `loadGhost` (schnellste frühere Fahrt mit gleicher `routeId`, Samples-Index = Sekunde), `ghostGap`, `updateGhostHUD`, Kachel `#ghostBox`, Schalter `#cGhost` (`settings.ghost`) |
 | Verlauf | IndexedDB `kurbel` v2 (`kv`, `rides`), `saveRideToHistory`, `openHistory`, Backup/Restore |
 | Dashboard | `openDash`, `ftpEstimate` (Test < 6 Wochen → hoch; sonst CP-Modell aus frei gefahrenen Abschnitten, ERG zählt nicht), `pmc` (CTL 42 / ATL 7), `lineChart`, `barChart`; Palette `#2563eb` / `#e8400f` (validiert) |
-| Setup-Menü | `fillSelects`, `renderRouteCards`, `renderWoCards`, `woCats`, `pickWorkout`, `renderPlanBanner` |
+| Setup-Menü | Fenster Menü, Plan, Fahrten, Dashboard alle bis 1440 px breit; Hover-Tooltip über Workout-Profilen `woHover` (Vorschau im Menü, Details, Editor), `fillSelects`, `renderRouteCards`, `renderWoCards`, `woCats`, `pickWorkout`, `renderPlanBanner` |
 | Karte | Leaflet in `#mapBox`; Fahrtrichtung oben + leicht schräg (`TILT`, perspective + rotateX) über `mapRot`/`sizeMapRot` (Container vergrößert, Fahrer bei 62 % Höhe, Steuerelemente aus dem Container herausgezogen), Knopf `#btnHeadUp`;  `TILES` (Esri Straße/Satellit, CyclOSM, OpenTopoMap – OSM und CARTO blockieren lokal geöffnete Dateien) |
 | Startseite | `KurbelLanding` (three.js-Kurbel), Glue mit `enter(intent)`; kein Slogan (von Max ausprobiert und wieder entfernt) |
 

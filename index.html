@@ -1397,7 +1397,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.0</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.1</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1472,7 +1472,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <div class="overlay" id="dashDlg" style="display:none">
     <div class="card menu dash">
       <div class="mhead"><h2>Dashboard</h2><div class="spacer" style="flex:1"></div><button class="primary" id="dashClose" title="Zum Fahrt-Menü: Strecke und Workout wählen">Kurbeln</button></div>
-      <section class="dCard dCoach"><h3>Heute empfohlen <span class="i" data-tip="Der Coach schaut auf deine letzten Fahrten: Wie frisch bist du (Form), wann warst du zuletzt hart unterwegs, wie viel bist du diese Woche gefahren und was steht im Plan. Daraus schlägt er 2–3 passende Einheiten vor.">i</span></h3><div class="coachTop"><div id="dReady"></div><p class="sub" id="dCoachTxt"></p></div><div class="coachRow" id="dCoach"></div></section>
+      <section class="dCard dCoach"><h3>Heute empfohlen <span class="i" data-tip="Der Coach schaut auf deine letzten Fahrten: Wie frisch bist du (Form), wann warst du zuletzt hart unterwegs, wie viel bist du diese Woche gefahren und was steht im Plan. Daraus schlägt er 2–3 passende Einheiten vor.">i</span></h3><p class="sub" id="dCoachTxt"></p><div class="coachRow" id="dCoach"></div></section>
       <div class="dTiles" id="dTiles"></div>
       <div class="dGrid2">
         <section class="dCard"><h3>Wochenziel <span class="i" data-tip="Wie viele Stunden willst du pro Woche fahren? Die Woche beginnt am Montag. Zählt alle Fahrten in Kurbeln.">i</span></h3><div id="dGoal"></div></section>
@@ -4332,7 +4332,7 @@ async function openDash() {
   const est = ftpEstimate(rides, settings.ftp), P = pmc(rides), last = P[P.length - 1] || { ctl: 0, atl: 0, tsb: 0 }, [fl, ft] = formLabel(last.tsb);
   const wkg = v => (v / settings.weight).toFixed(2).replace('.', ',');
   const vo2 = vo2Series(rides);
-  $('#dReady').innerHTML = readyRing(readiness(rides, P)); renderCoach(rides, P); renderGoal(rides); calRides = rides; renderCal();
+  renderCoach(rides, P); renderGoal(rides); calRides = rides; renderCal();
   $('#dTiles').innerHTML = `
     <div class="dTile"><small>FTP (eingetragen)</small><b>${settings.ftp}<span> W</span></b><em>${wkg(settings.ftp)} W/kg${ftpTrend() ? ' · ' + trend(ftpTrend().d, ' W') + ' seit ' + ftpTrend().since : ''}</em></div>
     <div class="dTile${est.ftp ? '' : ' muted'}"><small>FTP-Schätzung <span class="i" data-tip="${esc(est.how)}">i</span></small><b>${est.ftp ? est.ftp + '<span> W</span>' : '–'}</b><em>${est.ftp ? 'Zuverlässigkeit: ' + est.level : 'zu wenig Daten'}</em>${est.ftp && Math.abs(est.ftp - settings.ftp) >= 3 ? `<button class="dBtn" id="dUseFtp">${est.ftp} W übernehmen</button>` : ''}</div>

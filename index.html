@@ -359,6 +359,7 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 #routeInfo{display:none}
 /* Workout-Kategorien */
 #catRow.ccats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.subcats{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 12px}.subcats button{border-radius:999px;padding:4px 11px;font-size:13px;font-weight:500;background:transparent;color:var(--tx2);border:1px solid var(--ln)}.subcats button:hover{color:var(--tx)}.subcats button.on,#setup .subcats button.on{background:var(--sel)!important;color:var(--onsel)!important;border-color:var(--sel)!important}
 .ccats button{border:0;border-radius:14px;padding:8px 12px;font-weight:800;font-size:14px;background:var(--s1);color:var(--tx);display:flex;align-items:center;gap:6px;box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--cc) 35%,#fff),0 1px 2px rgba(0,0,0,.05);transition:transform .1s}
 .ccats button:hover{transform:translateY(-2px)}
 .ccats button.on{background:var(--cc);color:var(--onacc);box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
@@ -1367,7 +1368,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.6</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.7</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1386,7 +1387,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
       <section class="sec">
         <div class="sh"><span class="step">2</span><h3>Workout</h3><span class="i" data-tip="Wähle ein Workout oder fahr frei. Die Prozentwerte beziehen sich auf deine FTP. Mit „Bearbeiten“ ändern oder ein eigenes bauen.">i</span></div>
-        <div id="catRow" class="ccats"></div>
+        <div id="catRow" class="ccats"></div><div id="subRow" class="subcats" style="display:none"></div>
         <div id="favRow" class="wgrid"></div>
         <div class="inline wtools">
           <div style="display:none"><select id="selWorkout"></select></div>
@@ -2034,20 +2035,34 @@ const LIB_WORKOUTS = LIB.map(([c, name, T, spec, d]) => {
   const ok = segs.filter(s => s.dur > 0);
   return wk('lib_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''), 'Bibliothek ' + c, name, d || libDesc(ok), ok);
 });
-// ---------- Progression 30/15 und 40/20: Stufen von leicht nach schwer (mehr Wiederholungen bzw. Serien) ----------
+// ---------- VO2max-Progressionen: Stufen von leicht nach schwer (Unterordner in „VO2max“) ----------
+// Intervall-Serien: [Serien, Wiederholungen]; lange Intervalle: [Anzahl, Minuten, % FTP, Pause min]
 const PROG = {
   '30/15': { on: 30, off: 15, pOn: 120, pOff: 50, rest: 3, steps: [[2, 8], [2, 10], [2, 12], [3, 9], [3, 11], [3, 13], [3, 15], [4, 13]] },
   '40/20': { on: 40, off: 20, pOn: 118, pOff: 50, rest: 4, steps: [[2, 8], [2, 10], [3, 8], [3, 10], [4, 8], [3, 12], [4, 10], [4, 12]] },
+  '30/30': { on: 30, off: 30, pOn: 120, pOff: 50, rest: 3, steps: [[2, 8], [2, 10], [2, 12], [3, 8], [3, 10], [3, 12], [3, 14], [4, 12]] },
+  '4–5 min': { long: true, steps: [[3, 4, 113, 3], [4, 4, 113, 3], [5, 4, 112, 3], [6, 4, 111, 3], [3, 5, 110, 4], [4, 5, 110, 4], [5, 5, 108, 4], [6, 5, 107, 4]] },
 };
-const PROG_WORKOUTS = Object.entries(PROG).flatMap(([k, P]) => P.steps.map(([sets, n], i) => {
-  const segs = libParse(`WU ${sets}x[${n}x[${P.on}s@${P.pOn} ${P.off}s@${P.pOff}] ${P.rest}m@58] CD`);
-  segs.splice(segs.length - 3, 1); // nach der letzten Serie direkt ausfahren
-  const hard = sets * n * P.on, nx = P.steps[i + 1];
-  return wk('prog_' + k.replace('/', '_') + '_' + sets + 'x' + n, 'Progression', `${k} · Stufe ${i + 1} · ${sets}×${n}`,
-    `Stufe ${i + 1} von ${P.steps.length}: ${sets} Serien à ${n}× ${P.on} s @ ${P.pOn} % / ${P.off} s @ ${P.pOff} %, ${P.rest} min Pause zwischen den Serien – ${Math.round(hard / 60)} min hart.` + (nx ? ` Fühlt sich das gut an, nächstes Mal Stufe ${i + 2} (${nx[0]}×${nx[1]}).` : ' Höchste Stufe – als Nächstes lieber die Intensität etwas anheben.'), segs);
+const PROG_WORKOUTS = Object.entries(PROG).flatMap(([k, P]) => P.steps.map((st, i) => {
+  const N = P.steps.length, last = i === N - 1, idk = k.replace(/[^0-9]+/g, '_').replace(/_+$/, '');
+  let segs, name, desc, nxt;
+  if (P.long) {
+    const [n, m, pct, rest] = st, nx = P.steps[i + 1];
+    segs = libParse(`WU ${n}x[${m}m@${pct} ${rest}m@50] CD`); segs.splice(segs.length - 3, 1);
+    name = `${n}×${m} min`; nxt = nx && `${nx[0]}×${nx[1]} min`;
+    desc = `${n}× ${m} min @ ${pct} % FTP, ${rest} min locker dazwischen – ${n * m} min hart.`;
+  } else {
+    const [sets, n] = st, nx = P.steps[i + 1];
+    segs = libParse(`WU ${sets}x[${n}x[${P.on}s@${P.pOn} ${P.off}s@${P.pOff}] ${P.rest}m@58] CD`); segs.splice(segs.length - 3, 1); // nach der letzten Serie direkt ausfahren
+    name = `${sets}×${n}`; nxt = nx && `${nx[0]}×${nx[1]}`;
+    desc = `${sets} Serien à ${n}× ${P.on} s @ ${P.pOn} % / ${P.off} s @ ${P.pOff} %, ${P.rest} min Pause zwischen den Serien – ${Math.round(sets * n * P.on / 60)} min hart.`;
+  }
+  const w = wk('prog_' + idk + '_' + st[0] + 'x' + st[1], 'VO2max', `${k} · Stufe ${i + 1} · ${name}`,
+    `Stufe ${i + 1} von ${N}: ` + desc + (last ? ' Höchste Stufe – als Nächstes lieber die Intensität etwas anheben.' : ` Klappt alles sauber, nächstes Mal Stufe ${i + 2} (${nxt}).`), segs);
+  w.sub = k; return w;
 }));
-const WO_CATS = ['Zone 2', 'Tempo & Sweet Spot', 'Schwelle', 'VO2max', 'HIT', 'Progression', 'Sprint', 'Erholung', 'Test', ...LIB_CATS];
-const WO_CAT_TIP = { 'Zone 2': 'Grundlage: lange, ruhig – baut Ausdauer und Fettstoffwechsel auf (60–75 % FTP)', 'Tempo & Sweet Spot': 'Zügig, aber gut machbar – viel Trainingseffekt pro Minute (76–93 % FTP)', 'Schwelle': 'Rund um die FTP – hebt deine Dauerleistung (95–105 % FTP)', 'VO2max': 'Harte 2–8-Minuten-Intervalle – hebt die maximale Sauerstoffaufnahme (106–120 % FTP)', 'HIT': 'Kurze, sehr harte Intervalle mit kurzen Pausen (30/30, 40/20, Tabata …)', 'Sprint': 'Maximale Kurzzeit-Leistung – mit langen Pausen', 'Erholung': 'Locker kurbeln, Beine lockern (< 55 % FTP)', 'Test': 'FTP bestimmen – danach FTP im Profil eintragen', 'Progression': '30/15 und 40/20 in Stufen: von 2×8 bis 4×13 – jede Woche eine Stufe höher, solange es sauber klappt', 'Bibliothek LIT': 'Aus deiner Bibliothek: lange, lockere Grundlage (LIT)', 'Bibliothek MIT': 'Aus deiner Bibliothek: Fatmax, Sweet Spot, Kraftausdauer (MIT)', 'Bibliothek HIT': 'Aus deiner Bibliothek: Entwicklungsbereich, Intervalle, Laktat-Abbau (HIT, LC, SIT)', 'Bibliothek Rennen': 'Aus deiner Bibliothek: Tests, Wettkampf-Vorbereitung, Ironman-Tempo' };
+const WO_CATS = ['Zone 2', 'Tempo & Sweet Spot', 'Schwelle', 'VO2max', 'HIT', 'Sprint', 'Erholung', 'Test', ...LIB_CATS];
+const WO_CAT_TIP = { 'Zone 2': 'Grundlage: lange, ruhig – baut Ausdauer und Fettstoffwechsel auf (60–75 % FTP)', 'Tempo & Sweet Spot': 'Zügig, aber gut machbar – viel Trainingseffekt pro Minute (76–93 % FTP)', 'Schwelle': 'Rund um die FTP – hebt deine Dauerleistung (95–105 % FTP)', 'VO2max': 'Harte 2–8-Minuten-Intervalle – hebt die maximale Sauerstoffaufnahme (106–120 % FTP)', 'HIT': 'Kurze, sehr harte Intervalle mit kurzen Pausen (30/30, 40/20, Tabata …)', 'Sprint': 'Maximale Kurzzeit-Leistung – mit langen Pausen', 'Erholung': 'Locker kurbeln, Beine lockern (< 55 % FTP)', 'Test': 'FTP bestimmen – danach FTP im Profil eintragen', 'Bibliothek LIT': 'Aus deiner Bibliothek: lange, lockere Grundlage (LIT)', 'Bibliothek MIT': 'Aus deiner Bibliothek: Fatmax, Sweet Spot, Kraftausdauer (MIT)', 'Bibliothek HIT': 'Aus deiner Bibliothek: Entwicklungsbereich, Intervalle, Laktat-Abbau (HIT, LC, SIT)', 'Bibliothek Rennen': 'Aus deiner Bibliothek: Tests, Wettkampf-Vorbereitung, Ironman-Tempo' };
 const FAV_WORKOUTS = [
   fav('z2_60', 'Zone 2 · 1 h', 'Rampe 10 min, 45 min Zone 2 (68 % FTP), 5 min ausrollen', [B('ramp', { dur: 600, p0: 50, p1: 68 }), B('steady', { dur: 2700, p: 68 }), B('ramp', { dur: 300, p0: 60, p1: 45 })], 'Zone 2'),
   fav('z2_90', 'Zone 2 · 1,5 h', 'Rampe 10 min, 75 min Zone 2 (68 % FTP), 5 min ausrollen', [B('ramp', { dur: 600, p0: 50, p1: 68 }), B('steady', { dur: 4500, p: 68 }), B('ramp', { dur: 300, p0: 60, p1: 45 })], 'Zone 2'),
@@ -3839,7 +3854,7 @@ function openPlan(mode) { // mode: undefined = aktiver Plan bzw. Übersicht, 'li
 
 // ---------- Auswahl-Karten (Strecken & Workouts) ----------
 const CAT_STYLE = { 'Plan': ['', '#edff9a'], 'Beliebt': ['', '#f2f2ee'], 'Frei': ['', '#f2f2ee'], 'Zone 2': ['', '#76796a'], 'Tempo & Sweet Spot': ['', '#a3ad6f'], 'Schwelle': ['', '#cfdf82'],
-  'VO2max': ['', '#edff9a'], 'HIT': ['', '#f7ffd2'], 'Sprint': ['', '#ffffff'], 'Erholung': ['', '#4a4a4f'], 'Test': ['', '#c9c9c0'], 'Progression': ['', '#f7ffd2'], 'Bibliothek LIT': ['', '#76796a'], 'Bibliothek MIT': ['', '#a3ad6f'], 'Bibliothek HIT': ['', '#edff9a'], 'Bibliothek Rennen': ['', '#c9c9c0'] };
+  'VO2max': ['', '#edff9a'], 'HIT': ['', '#f7ffd2'], 'Sprint': ['', '#ffffff'], 'Erholung': ['', '#4a4a4f'], 'Test': ['', '#c9c9c0'], 'Bibliothek LIT': ['', '#76796a'], 'Bibliothek MIT': ['', '#a3ad6f'], 'Bibliothek HIT': ['', '#edff9a'], 'Bibliothek Rennen': ['', '#c9c9c0'] };
 const catEmoji = c => '', catColor = c => (CAT_STYLE[c] || [0, '#9a9a94'])[1];
 function woIF(wo) { // Intensität ≈ NP/FTP
   let a = 0, t = 0; for (const s of wo?.segs || []) { let p = s.free ? 0.9 : (s.p0 + s.p1) / 2; if (s.abs) p /= settings.ftp; a += s.dur * p ** 4; t += s.dur; }
@@ -3895,7 +3910,9 @@ function renderRouteCards() {
 }
 function pickWorkout(id, cat) {
   if (!workoutById(id) && id !== 'none' && id !== 'manual') return toast('Workout nicht gefunden');
-  $('#selWorkout').value = id; if (cat) settings.woCat = cat; refreshSetupInfo(); fillSelects();
+  $('#selWorkout').value = id; if (cat) settings.woCat = cat;
+  const w = workoutById(id); if (cat && w?.sub) settings.woSub = Object.assign({}, settings.woSub, { [cat]: w.sub });
+  refreshSetupInfo(); fillSelects();
 }
 const FREE_CARDS = [{ id: 'none', name: 'Freie Fahrt', desc: 'Einfach fahren – der Widerstand folgt der Strecke', emoji: 1 }, { id: 'manual', name: 'Fester Wattwert', desc: 'Konstante Watt im ERG-Modus, mit ↑/↓ anpassbar', emoji: 1 }];
 function renderWoCards(list) {
@@ -4133,7 +4150,11 @@ function coachSuggest(rides, P) {
   } else if (lastHard >= 2 && tsb > -20) {
     const vo2First = sVo2 >= sThr;
     head = `Du bist ausgeruht genug für eine harte Einheit (Form ${tsb > 0 ? '+' : ''}${Math.round(tsb)}, letzte harte Einheit ${fmtD(lastHard)}).`;
-    const vo2 = () => add(pick(['vo2_5x4', 'lib_hit_eb_4x4_min', 'ronn', 'lib_hit_dec_5x4_min', 'i4020']), 'VO2max', 'Kurze, harte Intervalle – VO2max zuletzt ' + fmtD(sVo2) + '. Hebt deine Spitzenleistung.');
+    // nächste Stufe der zuletzt gefahrenen VO2max-Progression
+    const lp = recent.find(r => (r.woId || '').startsWith('prog_')), lw = lp && PROG_WORKOUTS.findIndex(w => w.id === lp.woId);
+    const nextProg = lw >= 0 ? (PROG_WORKOUTS[lw + 1]?.sub === PROG_WORKOUTS[lw].sub ? PROG_WORKOUTS[lw + 1] : PROG_WORKOUTS[lw]) : null;
+    const vo2 = () => nextProg ? add(nextProg.id, 'VO2max-Progression', (nextProg.id === lp.woId ? 'Höchste Stufe erreicht – nochmal, gern mit etwas mehr Intensität.' : 'Nächste Stufe nach ' + PROG_WORKOUTS[lw].name.split(' · ').slice(-1)[0] + ' ' + fmtD((now - lp.start) / day) + '.') + ' Hebt deine Spitzenleistung.')
+      : add(pick(['vo2_5x4', 'prog_30_15_3x9', 'prog_40_20_3x8', 'prog_30_30_3x8', 'prog_4_5_4x4']), 'VO2max', 'Kurze, harte Intervalle – VO2max zuletzt ' + fmtD(sVo2) + '. Hebt deine Spitzenleistung.');
     const thr = () => add(pick(['ss3x10', 'thr3x12', 'lib_mit_sweet_spot_3x12_min', 'ss2x20', 'lib_mit_swsp_4x8_min']), 'Sweet Spot / Schwelle', 'Lange, zügige Intervalle – zuletzt ' + fmtD(sThr) + '. Hebt deine FTP.');
     if (vo2First) { vo2(); thr(); } else { thr(); vo2(); }
     add(weekend ? 'z2_120' : 'z2_60', 'Grundlage', 'Wenn es heute nicht hart sein soll: entspannte Zone 2.');
@@ -4247,6 +4268,15 @@ function fillSelects() {
   else if (settings.woCat === 'Frei') list = FREE_CARDS;
   else if (settings.woCat === 'Beliebt') list = FAV_WORKOUTS;
   else list = allWorkouts().filter(w => woCat(w) === settings.woCat);
+  // Unterordner (z. B. VO2max: Klassisch, 30/15, 40/20, 30/30, 4–5 min)
+  const subs = list.some(w => w.sub) ? ['Klassisch', ...new Set(list.filter(w => w.sub).map(w => w.sub))] : [];
+  $('#subRow').style.display = subs.length ? '' : 'none';
+  if (subs.length) {
+    const cur = (settings.woSub || {})[settings.woCat], sel = subs.includes(cur) ? cur : 'Klassisch';
+    $('#subRow').innerHTML = subs.map(x => `<button class="${x === sel ? 'on' : ''}" data-sub="${esc(x)}">${esc(x)}</button>`).join('');
+    $('#subRow').querySelectorAll('[data-sub]').forEach(b => b.onclick = () => { settings.woSub = Object.assign({}, settings.woSub, { [settings.woCat]: b.dataset.sub }); saveSettings(); fillSelects(); });
+    list = list.filter(w => (w.sub || 'Klassisch') === sel);
+  }
   $('#favRow').innerHTML = renderWoCards(list);
   $('#favRow').querySelectorAll('[data-fav]').forEach(b => b.onclick = () => pickWorkout(b.dataset.fav));
   renderRouteCards(); renderPlanBanner();

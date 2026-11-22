@@ -374,6 +374,10 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 .wname{font-weight:900;font-size:15px;line-height:1.2;color:var(--tx)}
 .wmeta{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--tx2);flex-wrap:wrap}
 .lvl{display:inline-flex;gap:2px}.lvl i{width:6px;height:10px;border-radius:2px;background:var(--cc,var(--acc))}.lvl i.o{background:var(--ln)}
+.wdet{position:absolute;right:8px;bottom:8px;font-size:12px;color:var(--tx2);border:1px solid var(--ln);border-radius:999px;padding:2px 9px;background:var(--s1)}.wdet:hover{color:var(--tx);border-color:var(--tx2)}
+#woView{z-index:3000}.wvStats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}.wvStats div{background:var(--s1);border-radius:12px;padding:8px 10px}.wvStats small{display:block;font-size:12px;color:var(--tx2)}.wvStats b{font-family:var(--numfont);font-size:20px;color:var(--tx);font-weight:500}
+.wvSteps{display:flex;flex-direction:column;gap:4px;max-height:34vh;overflow:auto}.wvStep{display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;background:var(--s1);border-left:4px solid var(--z);border-radius:8px;padding:7px 10px;font-size:14px;color:var(--tx)}.wvStep span{color:var(--tx2);font-family:var(--numfont);font-size:13px}.wvStep em{font-style:normal;color:var(--tx2);font-size:13px}
+@media (max-width:760px){.wvStats{grid-template-columns:1fr 1fr}.wvStep{grid-template-columns:70px 1fr}.wvStep em{grid-column:1/-1}}
 .wplan{position:absolute;top:-11px;right:10px;background:var(--acc);color:var(--onacc);font-size:11px;font-weight:900;padding:2px 8px;border-radius:999px}
 .wcard.done .wplan{background:#16a34a}
 .wcard.free{border-top-color:var(--sel)}
@@ -1368,7 +1372,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.7</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.8</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1592,6 +1596,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
   </div>
 
   <!-- Workout-Editor -->
+  <div class="overlay" id="woView" style="display:none">
+    <div class="card menu" style="width:min(820px,100%)">
+      <div class="mhead"><h2 id="wvName"></h2></div>
+      <p class="sub" id="wvDesc"></p>
+      <canvas id="wvChart" style="width:100%;height:150px;border-radius:12px;margin-top:6px;display:block"></canvas>
+      <div class="wvStats" id="wvStats"></div>
+      <div id="wvZones"></div>
+      <h3 style="margin-top:16px">Ablauf</h3>
+      <div class="wvSteps" id="wvSteps"></div>
+      <div class="hint" id="wvHint" style="margin-top:10px"></div>
+      <div class="actions"><button id="wvClose">Schließen</button><button id="wvEdit">Kopie bearbeiten</button><button class="primary" id="wvPick">Auswählen</button></div>
+    </div>
+  </div>
   <div class="overlay" id="editor" style="display:none">
     <div class="card">
       <h2>Workout-Editor</h2>
@@ -3923,6 +3940,7 @@ function renderWoCards(list) {
     const inPlan = w._plan;
     return `<button class="wcard${settings.workoutId === w.id ? ' on' : ''}${inPlan?.done ? ' done' : ''}" data-fav="${esc(w.id)}" title="${esc(w.desc || '')}" style="--cc:${catColor(c)}">
       ${inPlan ? `<span class="wplan">${inPlan.done ? '✓ Erledigt' : inPlan.next ? 'Als Nächstes' : SLOT[w.slot] || ''}</span>` : ''}
+      <span class="wdet" data-det="1" title="Workout genauer ansehen">Details</span>
       <div class="wprof">${woSvg(w)}</div><div class="wname">${esc(w.name)}</div>
       <div class="wmeta"><span>${fmtT(woTotal(w))}</span><span class="lvl" title="Intensität">${'<i></i>'.repeat(lvl)}${'<i class="o"></i>'.repeat(5 - lvl)}</span><span>TSS ${woTss(w)}</span></div></button>`;
   }).join('');
@@ -4278,7 +4296,7 @@ function fillSelects() {
     list = list.filter(w => (w.sub || 'Klassisch') === sel);
   }
   $('#favRow').innerHTML = renderWoCards(list);
-  $('#favRow').querySelectorAll('[data-fav]').forEach(b => b.onclick = () => pickWorkout(b.dataset.fav));
+  $('#favRow').querySelectorAll('[data-fav]').forEach(b => b.onclick = e => e.target.closest('[data-det]') ? openWoView(b.dataset.fav) : pickWorkout(b.dataset.fav));
   renderRouteCards(); renderPlanBanner();
 }
 function loadSetup() {
@@ -4304,7 +4322,7 @@ function refreshSetupInfo() {
   const wo = workoutById(settings.workoutId), id = settings.workoutId;
   $('#manualRow').style.display = id === 'manual' ? '' : 'none';
   $('#btnDelWo').style.display = id.startsWith('imp_') ? '' : 'none';
-  $('#btnEdit').style.display = wo && !wo.manual ? '' : 'none';
+  $('#btnEdit').style.display = wo && !wo.manual ? '' : 'none'; if (wo && !wo.manual) $('#btnEdit').textContent = woOwn(wo) ? 'Bearbeiten' : 'Kopie bearbeiten';
   renderDayForm(wo);
   $('#woInfo').textContent = wo && !wo.manual ? `${fmtT(woTotal(wo))} · bei FTP ${settings.ftp} W${dayBias() ? ' · Tagesform ' + (dayBias() > 0 ? '+' : '−') + Math.abs(dayBias()) + ' %' : ''}${wo.desc ? ' · ' + wo.desc : ''}` : wo?.manual ? 'Konstanter Wattwert, mit ↑/↓ während der Fahrt anpassen' : 'Freie Fahrt – der Widerstand folgt der Strecke';
   ride.distance = 0; ride.heading = 0;
@@ -4421,7 +4439,15 @@ function segsToBlocks(wo) {
     if (s.free) return { type: 'free', dur: s.dur };
     const a = s.abs ? s.p0 / ftp : s.p0, b = s.abs ? s.p1 / ftp : s.p1;
     return Math.abs(a - b) < 1e-6 ? { type: 'steady', dur: s.dur, p: r1(a) } : { type: 'ramp', dur: s.dur, p0: r1(a), p1: r1(b) };
-  });
+  }).reduce((out, b, i, all) => { // gleiche Paare (hart/locker), die sich wiederholen → ein Intervall-Block
+    if (out._skip > i) return out;
+    const A = all[i], Bb = all[i + 1], same = (x, y) => x && y && x.type === 'steady' && y.type === 'steady' && x.dur === y.dur && x.p === y.p;
+    if (A.type === 'steady' && Bb?.type === 'steady') {
+      let k = 1; while (same(all[i + 2 * k], A) && same(all[i + 2 * k + 1], Bb)) k++;
+      if (k >= 2) { out.push({ type: 'intervals', reps: k, on: A.dur, pOn: A.p, off: Bb.dur, pOff: Bb.p }); out._skip = i + 2 * k; return out; }
+    }
+    out.push(b); return out;
+  }, Object.assign([], { _skip: 0 })).slice();
 }
 const tIn = v => { v = String(v).trim(); if (v.includes(':')) { const [m, s] = v.split(':'); return (parseInt(m) || 0) * 60 + (parseInt(s) || 0); } return Math.round(parseFloat(v.replace(',', '.')) * 60) || 0; };
 const tOut = s => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
@@ -4435,8 +4461,8 @@ function openEditor(wo) {
   ed = { blocks: wo ? segsToBlocks(wo) : [{ type: 'ramp', dur: 600, p0: 45, p1: 75 }, { type: 'intervals', reps: 4, on: 300, pOn: 105, off: 180, pOff: 50 }, { type: 'ramp', dur: 300, p0: 60, p1: 40 }], editId: own ? wo.id : null, fileName: own ? wo.fileName : null };
   $('#eName').value = wo ? (own ? wo.name : wo.name + ' (Kopie)') : 'Mein Workout'; $('#eDesc').value = wo?.desc || '';
   $('#eFtp').textContent = settings.ftp;
-  $('#eWhere').textContent = ed.editId?.startsWith('dir_') ? 'Überschreibt die Datei „' + ed.fileName + '“ in deinem Ordner.' : ed.editId ? 'Wird hier im Browser gespeichert.' : dirHandle ? 'Wird als .zwo in deinem Ordner „' + dirHandle.name + '“ gespeichert.' : 'Wird hier im Browser gespeichert. Tipp: Mit „Workout-Ordner verbinden“ landen eigene Workouts als .zwo-Datei in deinem Ordner.';
-  renderBlocks(); $('#editor').style.display = 'flex';
+  $('#eWhere').textContent = (wo && !own ? 'Du bearbeitest eine Kopie – das Original „' + wo.name + '“ bleibt unverändert. ' : '') + (ed.editId?.startsWith('dir_') ? 'Überschreibt die Datei „' + ed.fileName + '“ in deinem Ordner.' : ed.editId ? 'Wird hier im Browser gespeichert.' : dirHandle ? 'Wird als .zwo in deinem Ordner „' + dirHandle.name + '“ gespeichert.' : 'Wird hier im Browser gespeichert. Tipp: Mit „Workout-Ordner verbinden“ landen eigene Workouts als .zwo-Datei in deinem Ordner.');
+  renderBlocks(); $('#editor').style.display = 'flex'; requestAnimationFrame(edPreview);
 }
 function renderBlocks() {
   const box = $('#eBlocks'); box.innerHTML = '';
@@ -4469,7 +4495,7 @@ function edWorkout() { return { id: 'tmp', name: $('#eName').value.trim() || 'Wo
 function edPreview() {
   const wo = edWorkout(); drawWorkout($('#epreview'), wo, { top: 8 });
   const tss = wo.segs.reduce((a, s) => a + s.dur * (s.free ? .36 : (s.p0 * s.p0 + s.p0 * s.p1 + s.p1 * s.p1) / 3), 0) / 36;
-  $('#eSum').textContent = `${fmtT(woTotal(wo))} · ${ed.blocks.length} Blöcke · ca. ${Math.round(tss)} TSS`;
+  $('#eSum').textContent = `${fmtT(woTotal(wo))} · ${ed.blocks.length} Blöcke · ca. ${woTss(wo)} TSS`;
 }
 function toZWO(wo) {
   const f = v => (v / 100).toFixed(3);
@@ -4480,6 +4506,38 @@ function toZWO(wo) {
   return `<workout_file>\n  <author>Kurbeln</author>\n  <name>${esc(wo.name)}</name>\n  <description>${esc(wo.desc || '')}</description>\n  <sportType>bike</sportType>\n  <tags/>\n  <workout>\n    ${lines.join('\n    ')}\n  </workout>\n</workout_file>\n`;
 }
 const safeName = n => n.replace(/[\\/:*?"<>|]+/g, '-').trim().slice(0, 80) || 'Workout';
+// ---------- Workout ansehen ----------
+const woOwn = wo => wo && (wo.id.startsWith('imp_') || wo.id.startsWith('dir_'));
+let woViewId = null;
+function openWoView(id) {
+  const wo = workoutById(id); if (!wo || wo.manual) return; woViewId = id;
+  const ftp = settings.ftp, W_ = p => Math.round(p * ftp), pc = p => Math.round(p * 100);
+  const rel = (s, k) => s.abs ? s[k] / ftp : s[k];
+  $('#wvName').textContent = wo.name; $('#wvDesc').textContent = wo.desc || '';
+  $('#woView').style.display = 'flex';
+  requestAnimationFrame(() => drawWorkout($('#wvChart'), wo, { top: 8 }));
+  const segs = wo.segs.filter(s => s.dur > 0), tot = woTotal(wo);
+  const avgP = segs.reduce((a, s) => a + (s.free ? 0 : s.dur * (rel(s, 'p0') + rel(s, 'p1')) / 2), 0) / (segs.filter(s => !s.free).reduce((a, s) => a + s.dur, 0) || 1);
+  const Z = [0, 0, 0, 0, 0, 0, 0], ZN = ['Erholung', 'Grundlage', 'Tempo', 'Schwelle', 'VO2max', 'Anaerob', 'Sprint'];
+  segs.forEach(s => { if (s.free) return; const q = (rel(s, 'p0') + rel(s, 'p1')) / 2; Z[q < .55 ? 0 : q < .75 ? 1 : q < .9 ? 2 : q < 1.05 ? 3 : q < 1.2 ? 4 : q < 1.5 ? 5 : 6] += s.dur; });
+  const hard = Z[4] + Z[5] + Z[6];
+  $('#wvStats').innerHTML = [['Dauer', fmtT(tot)], ['TSS', woTss(wo)], ['Intensität', woIF(wo).toFixed(2).replace('.', ',')], ['Ø Ziel', W_(avgP) + ' W'], ['Über 105 %', fmtT(hard)]].map(([l, v]) => `<div><small>${l}</small><b>${v}</b></div>`).join('');
+  const zt = Z.reduce((a, b) => a + b, 0);
+  $('#wvZones').innerHTML = zt ? `<div class="zBar" style="margin-top:12px">${Z.map((v, i) => v ? `<i style="flex:${v};background:${ZC[i]}"></i>` : '').join('')}</div><div class="zLeg">${Z.map((v, i) => v ? `<span><i style="background:${ZC[i]}"></i>${ZN[i]} <b>${fmtT(v)}</b></span>` : '').join('')}</div>` : '';
+  const blocks = segsToBlocks(wo), zc = p => ZC[p < 55 ? 0 : p < 75 ? 1 : p < 90 ? 2 : p < 105 ? 3 : p < 120 ? 4 : p < 150 ? 5 : 6];
+  const w = p => Math.round(p / 100 * ftp) + ' W';
+  $('#wvSteps').innerHTML = blocks.map(b => {
+    if (b.type === 'free') return `<div class="wvStep" style="--z:var(--ln)"><span>${tOut(b.dur)}</span>Frei fahren (ERG aus)<em></em></div>`;
+    if (b.type === 'steady') return `<div class="wvStep" style="--z:${zc(b.p)}"><span>${tOut(b.dur)}</span>${b.p} % FTP<em>${w(b.p)}</em></div>`;
+    if (b.type === 'ramp') return `<div class="wvStep" style="--z:${zc(Math.max(b.p0, b.p1))}"><span>${tOut(b.dur)}</span>Rampe ${b.p0} → ${b.p1} %<em>${w(b.p0)} → ${w(b.p1)}</em></div>`;
+    return `<div class="wvStep" style="--z:${zc(b.pOn)}"><span>${tOut(b.reps * (b.on + b.off))}</span>${b.reps}× ${tOut(b.on)} @ ${b.pOn} % / ${tOut(b.off)} @ ${b.pOff} %<em>${w(b.pOn)} / ${w(b.pOff)}</em></div>`;
+  }).join('');
+  $('#wvHint').textContent = 'Watt bei deiner FTP von ' + ftp + ' W' + (woOwn(wo) ? '.' : '. „Kopie bearbeiten“ lässt das Original unverändert – die Kopie landet unter „Eigene“.');
+  $('#wvEdit').textContent = woOwn(wo) ? 'Bearbeiten' : 'Kopie bearbeiten';
+}
+$('#wvClose').onclick = () => { $('#woView').style.display = 'none'; };
+$('#wvPick').onclick = () => { $('#woView').style.display = 'none'; pickWorkout(woViewId); };
+$('#wvEdit').onclick = () => { $('#woView').style.display = 'none'; openEditor(workoutById(woViewId)); };
 async function edSave() {
   const wo = edWorkout(); if (!wo.segs.length) return toast('Bitte mindestens einen Block hinzufügen.');
   try {

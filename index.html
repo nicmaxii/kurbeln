@@ -141,7 +141,7 @@ details summary{cursor:pointer;color:#8ab4ff;font-size:13px;margin-top:6px}
 .upRow small{color:var(--tx2);font-size:12px}.upRow.now{outline:1px solid var(--acc)}.upRow.done{opacity:.55}.upRow b{font-weight:500}
 .upSet{font-family:var(--uifont);font-size:12px;color:var(--tx2);margin:6px 0 0}
 .upTl{position:relative;height:340px;border-radius:10px;background:var(--s1);overflow:hidden}.upTl .blk2{position:absolute;left:0;border-radius:0 6px 6px 0;background:var(--z);opacity:.9}.upTl .lb{position:absolute;right:8px;font-family:var(--numfont);font-size:12px;color:var(--tx);white-space:nowrap}
-.upTl .nowl{position:absolute;left:0;right:0;top:0;height:2px;background:var(--acc)}.upTl .tm{position:absolute;left:6px;font-family:var(--numfont);font-size:11px;color:var(--tx2)}
+.upTl .lb.cur{color:var(--acc);font-size:14px}.upTl .nowl{position:absolute;left:0;right:0;top:0;height:2px;background:var(--acc)}.upTl .tm{position:absolute;left:6px;font-family:var(--numfont);font-size:11px;color:var(--tx2)}
 @media (max-width:760px){.upList{display:none!important}}
 #cdown{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);z-index:1150;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;background:color-mix(in srgb,var(--s0) 82%,transparent);border:1px solid var(--ln);border-radius:28px;padding:14px 34px 16px}
 #cdown b{font-family:var(--numfont);font-size:110px;line-height:1;color:var(--acc);font-weight:500}#cdown span{font-size:17px;color:var(--tx);white-space:nowrap}
@@ -1394,7 +1394,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.7</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.8</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2873,7 +2873,7 @@ function updateHUD() {
   $('#wBias').textContent = [ride.bias ? 'Intensität ' + (ride.bias > 0 ? '+' : ride.bias < 0 ? '−' : '±') + Math.abs(ride.bias) + ' %' : '', pmActive() && settings.erg ? 'PowerMatch: Trainer ' + (live.pmOffset >= 0 ? '+' : '') + Math.round(live.pmOffset) + ' W' : ''].filter(Boolean).join(' · ');
 }
 // ---------- Spalte „Was kommt“: anstehende Abschnitte (Vorschau-Varianten ?liste=a|b|c) ----------
-const UPL = new URLSearchParams(location.search).get('liste') || settings.upList || '';
+const UPL = new URLSearchParams(location.search).get('liste') || settings.upList || 'b'; // Standard seit 6.8: Zeitstrahl
 function renderUpList(wo, t) {
   const box = $('#upList');
   if (!UPL || !wo || wo.manual || ride.woDone || !(ride.state === 'running' || ride.state === 'paused')) { box.style.display = 'none'; return; }
@@ -2886,10 +2886,10 @@ function renderUpList(wo, t) {
     box.innerHTML = '<h4>Als Nächstes</h4>' + segs.slice(ci, ci + 7).map((x, k) => `<div class="upRow${k ? '' : ' now'}" style="--z:${zc(x.s)}">${k ? '' : `<i style="width:${(t - x.start) / x.s.dur * 100}%"></i>`}<small>${k ? 'in ' + fmtT(x.start - t) : 'jetzt'}</small><span>${fmtT(k ? x.s.dur : x.end - t)}</span><b>${W_(x.s)}</b></div>`).join('');
   } else if (UPL === 'b') { // Zeitstrahl: die nächsten 8 Minuten von oben nach unten, Breite = Leistung
     const win = 480, H = 340, px = H / win, maxW = Math.max(...wo.segs.map(s => segWatts(s, 1, ftp) || 0), 1);
-    let html = '<h4>Nächste 8 Minuten</h4><div class="upTl">';
-    for (const x of segs.slice(ci)) { if (x.start - t > win) break; const y = Math.max(0, x.start - t) * px, h = (Math.min(x.end, t + win) - Math.max(x.start, t)) * px, w = (segWatts(x.s, .5, ftp) || maxW * .3) / maxW * 62;
-      html += `<div class="blk2" style="--z:${zc(x.s)};top:${y}px;height:${Math.max(1, h - 1)}px;width:${w}%"></div>` + (h > 16 ? `<div class="lb" style="top:${y + Math.min(h / 2, 14) - 7}px">${W_(x.s)} · ${fmtT(x.s.dur)}</div>` : ''); }
-    for (let m = 2; m <= 8; m += 2) html += `<div class="tm" style="top:${m * 60 * px - 14}px">+${m} min</div>`;
+    let html = '<h4>Als Nächstes</h4><div class="upTl">';
+    let y = 0; // gestapelt: Höhe nach Dauer, aber mindestens 20 px, damit jede Zeile lesbar bleibt
+    for (const x of segs.slice(ci)) { if (y >= H) break; const cur = x.start <= t, d = cur ? x.end - t : x.s.dur, h = Math.max(cur ? 24 : 20, d * px), w = (segWatts(x.s, .5, ftp) || maxW * .3) / maxW * 58;
+      html += `<div class="blk2" style="--z:${zc(x.s)};top:${y}px;height:${h - 2}px;width:${w}%"></div><div class="lb${cur ? ' cur' : ''}" style="top:${y + Math.min(h / 2, 14) - 8}px">${W_(x.s)} · ${fmtT(d)}</div>`; y += h; }
     box.innerHTML = html + '<div class="nowl"></div></div>';
   } else { // Intervalle nach Serien, erledigte mit Ø
     const IV = woIntervals(wo); if (!IV.length) { box.style.display = 'none'; return; }
@@ -5000,7 +5000,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   // Fahrtwind hinter der Kurbel: dezente helle Linien ziehen langsam nach links
   const lines = [];
   // Aufbau-Varianten zur Vorschau (?bild=1|2|3): Position/Größe der Kurbel und Breite der Speed-Linien
-  const LAY = { '': { x: 0, y: null, z: 15.5, zn: 33, band: [0.42, 0.84] }, '1': { x: 0, y: 0.55, z: 11, zn: 22, band: [0.12, 0.92] }, '2': { x: 3.4, y: -0.6, z: 9.5, zn: 20, band: [0.1, 0.95] }, '3': { x: 0, y: -2.3, z: 9.5, zn: 21, band: [0.3, 0.98] }, '4': { x: 2.6, y: -0.9, z: 7.2, zn: 15, band: [0.05, 0.97] }, '5': { x: 2.0, y: -0.6, z: 6.0, zn: 12.5, band: [0.05, 0.97] } }[new URLSearchParams(location.search).get('bild') || ''] || { x: 0, y: null, z: 15.5, zn: 33, band: [0.42, 0.84] };
+  const LAY = { '0': { x: 0, y: null, z: 15.5, zn: 33, band: [0.42, 0.84] }, '1': { x: 0, y: 0.55, z: 11, zn: 22, band: [0.12, 0.92] }, '2': { x: 3.4, y: -0.6, z: 9.5, zn: 20, band: [0.1, 0.95] }, '3': { x: 0, y: -2.3, z: 9.5, zn: 21, band: [0.3, 0.98] }, '4': { x: 2.6, y: -0.9, z: 7.2, zn: 15, band: [0.05, 0.97] }, '5': { x: 2.0, y: -0.6, z: 6.0, zn: 12.5, band: [0.05, 0.97] } }[new URLSearchParams(location.search).get('bild') || '5'] || { x: 0, y: null, z: 15.5, zn: 33, band: [0.42, 0.84] };
   const lineY = H => H * (LAY.band[0] + Math.random() * (LAY.band[1] - LAY.band[0]));
   function drawFx(p, dt) {
     const W = trail.width, H = trail.height, k = 1 - sm(0.2, 0.6, p);

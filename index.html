@@ -1367,7 +1367,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.5</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.6</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2034,8 +2034,20 @@ const LIB_WORKOUTS = LIB.map(([c, name, T, spec, d]) => {
   const ok = segs.filter(s => s.dur > 0);
   return wk('lib_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''), 'Bibliothek ' + c, name, d || libDesc(ok), ok);
 });
-const WO_CATS = ['Zone 2', 'Tempo & Sweet Spot', 'Schwelle', 'VO2max', 'HIT', 'Sprint', 'Erholung', 'Test', ...LIB_CATS];
-const WO_CAT_TIP = { 'Zone 2': 'Grundlage: lange, ruhig – baut Ausdauer und Fettstoffwechsel auf (60–75 % FTP)', 'Tempo & Sweet Spot': 'Zügig, aber gut machbar – viel Trainingseffekt pro Minute (76–93 % FTP)', 'Schwelle': 'Rund um die FTP – hebt deine Dauerleistung (95–105 % FTP)', 'VO2max': 'Harte 2–8-Minuten-Intervalle – hebt die maximale Sauerstoffaufnahme (106–120 % FTP)', 'HIT': 'Kurze, sehr harte Intervalle mit kurzen Pausen (30/30, 40/20, Tabata …)', 'Sprint': 'Maximale Kurzzeit-Leistung – mit langen Pausen', 'Erholung': 'Locker kurbeln, Beine lockern (< 55 % FTP)', 'Test': 'FTP bestimmen – danach FTP im Profil eintragen', 'Bibliothek LIT': 'Aus deiner Bibliothek: lange, lockere Grundlage (LIT)', 'Bibliothek MIT': 'Aus deiner Bibliothek: Fatmax, Sweet Spot, Kraftausdauer (MIT)', 'Bibliothek HIT': 'Aus deiner Bibliothek: Entwicklungsbereich, Intervalle, Laktat-Abbau (HIT, LC, SIT)', 'Bibliothek Rennen': 'Aus deiner Bibliothek: Tests, Wettkampf-Vorbereitung, Ironman-Tempo' };
+// ---------- Progression 30/15 und 40/20: Stufen von leicht nach schwer (mehr Wiederholungen bzw. Serien) ----------
+const PROG = {
+  '30/15': { on: 30, off: 15, pOn: 120, pOff: 50, rest: 3, steps: [[2, 8], [2, 10], [2, 12], [3, 9], [3, 11], [3, 13], [3, 15], [4, 13]] },
+  '40/20': { on: 40, off: 20, pOn: 118, pOff: 50, rest: 4, steps: [[2, 8], [2, 10], [3, 8], [3, 10], [4, 8], [3, 12], [4, 10], [4, 12]] },
+};
+const PROG_WORKOUTS = Object.entries(PROG).flatMap(([k, P]) => P.steps.map(([sets, n], i) => {
+  const segs = libParse(`WU ${sets}x[${n}x[${P.on}s@${P.pOn} ${P.off}s@${P.pOff}] ${P.rest}m@58] CD`);
+  segs.splice(segs.length - 3, 1); // nach der letzten Serie direkt ausfahren
+  const hard = sets * n * P.on, nx = P.steps[i + 1];
+  return wk('prog_' + k.replace('/', '_') + '_' + sets + 'x' + n, 'Progression', `${k} · Stufe ${i + 1} · ${sets}×${n}`,
+    `Stufe ${i + 1} von ${P.steps.length}: ${sets} Serien à ${n}× ${P.on} s @ ${P.pOn} % / ${P.off} s @ ${P.pOff} %, ${P.rest} min Pause zwischen den Serien – ${Math.round(hard / 60)} min hart.` + (nx ? ` Fühlt sich das gut an, nächstes Mal Stufe ${i + 2} (${nx[0]}×${nx[1]}).` : ' Höchste Stufe – als Nächstes lieber die Intensität etwas anheben.'), segs);
+}));
+const WO_CATS = ['Zone 2', 'Tempo & Sweet Spot', 'Schwelle', 'VO2max', 'HIT', 'Progression', 'Sprint', 'Erholung', 'Test', ...LIB_CATS];
+const WO_CAT_TIP = { 'Zone 2': 'Grundlage: lange, ruhig – baut Ausdauer und Fettstoffwechsel auf (60–75 % FTP)', 'Tempo & Sweet Spot': 'Zügig, aber gut machbar – viel Trainingseffekt pro Minute (76–93 % FTP)', 'Schwelle': 'Rund um die FTP – hebt deine Dauerleistung (95–105 % FTP)', 'VO2max': 'Harte 2–8-Minuten-Intervalle – hebt die maximale Sauerstoffaufnahme (106–120 % FTP)', 'HIT': 'Kurze, sehr harte Intervalle mit kurzen Pausen (30/30, 40/20, Tabata …)', 'Sprint': 'Maximale Kurzzeit-Leistung – mit langen Pausen', 'Erholung': 'Locker kurbeln, Beine lockern (< 55 % FTP)', 'Test': 'FTP bestimmen – danach FTP im Profil eintragen', 'Progression': '30/15 und 40/20 in Stufen: von 2×8 bis 4×13 – jede Woche eine Stufe höher, solange es sauber klappt', 'Bibliothek LIT': 'Aus deiner Bibliothek: lange, lockere Grundlage (LIT)', 'Bibliothek MIT': 'Aus deiner Bibliothek: Fatmax, Sweet Spot, Kraftausdauer (MIT)', 'Bibliothek HIT': 'Aus deiner Bibliothek: Entwicklungsbereich, Intervalle, Laktat-Abbau (HIT, LC, SIT)', 'Bibliothek Rennen': 'Aus deiner Bibliothek: Tests, Wettkampf-Vorbereitung, Ironman-Tempo' };
 const FAV_WORKOUTS = [
   fav('z2_60', 'Zone 2 · 1 h', 'Rampe 10 min, 45 min Zone 2 (68 % FTP), 5 min ausrollen', [B('ramp', { dur: 600, p0: 50, p1: 68 }), B('steady', { dur: 2700, p: 68 }), B('ramp', { dur: 300, p0: 60, p1: 45 })], 'Zone 2'),
   fav('z2_90', 'Zone 2 · 1,5 h', 'Rampe 10 min, 75 min Zone 2 (68 % FTP), 5 min ausrollen', [B('ramp', { dur: 600, p0: 50, p1: 68 }), B('steady', { dur: 4500, p: 68 }), B('ramp', { dur: 300, p0: 60, p1: 45 })], 'Zone 2'),
@@ -2084,6 +2096,7 @@ const BUILTIN_WORKOUTS = [
   // Test
   wk('ramp', 'Test', 'FTP-Rampentest (+20 W/min)', 'Jede Minute +20 W bis nichts mehr geht. FTP ≈ 75 % der besten Minute', [W(300, 100, 150, { abs: true }), ...Array.from({ length: 30 }, (_, i) => W(60, 120 + i * 20, 120 + i * 20, { abs: true }))]),
   wk('ftp20', 'Test', 'FTP-Test 20 min', '20 min so hart wie möglich (ERG aus). FTP ≈ 95 % des 20-min-Schnitts', [...WU, ...reps(3, W(60, 1.1), W(60, .5)), W(300, .55), W(300, 1.05), W(600, .5), W(1200, 0, 0, { free: true }), W(600, .5, .4)]),
+  ...PROG_WORKOUTS,
   ...LIB_WORKOUTS,
 ].map(w => { w.ramp = w.id === 'ramp'; return w; });
 let importedWorkouts = LS.get('kurbel.workouts', []);
@@ -3826,7 +3839,7 @@ function openPlan(mode) { // mode: undefined = aktiver Plan bzw. Übersicht, 'li
 
 // ---------- Auswahl-Karten (Strecken & Workouts) ----------
 const CAT_STYLE = { 'Plan': ['', '#edff9a'], 'Beliebt': ['', '#f2f2ee'], 'Frei': ['', '#f2f2ee'], 'Zone 2': ['', '#76796a'], 'Tempo & Sweet Spot': ['', '#a3ad6f'], 'Schwelle': ['', '#cfdf82'],
-  'VO2max': ['', '#edff9a'], 'HIT': ['', '#f7ffd2'], 'Sprint': ['', '#ffffff'], 'Erholung': ['', '#4a4a4f'], 'Test': ['', '#c9c9c0'], 'Bibliothek LIT': ['', '#76796a'], 'Bibliothek MIT': ['', '#a3ad6f'], 'Bibliothek HIT': ['', '#edff9a'], 'Bibliothek Rennen': ['', '#c9c9c0'] };
+  'VO2max': ['', '#edff9a'], 'HIT': ['', '#f7ffd2'], 'Sprint': ['', '#ffffff'], 'Erholung': ['', '#4a4a4f'], 'Test': ['', '#c9c9c0'], 'Progression': ['', '#f7ffd2'], 'Bibliothek LIT': ['', '#76796a'], 'Bibliothek MIT': ['', '#a3ad6f'], 'Bibliothek HIT': ['', '#edff9a'], 'Bibliothek Rennen': ['', '#c9c9c0'] };
 const catEmoji = c => '', catColor = c => (CAT_STYLE[c] || [0, '#9a9a94'])[1];
 function woIF(wo) { // Intensität ≈ NP/FTP
   let a = 0, t = 0; for (const s of wo?.segs || []) { let p = s.free ? 0.9 : (s.p0 + s.p1) / 2; if (s.abs) p /= settings.ftp; a += s.dur * p ** 4; t += s.dur; }

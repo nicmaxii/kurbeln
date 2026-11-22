@@ -135,10 +135,11 @@ details summary{cursor:pointer;color:#8ab4ff;font-size:13px;margin-top:6px}
 #wbox .sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 #wbox .wcount{font-size:15px;font-weight:600;color:var(--tx);letter-spacing:.02em;margin-bottom:2px}#wbox .wcount b{color:var(--acc);font-family:var(--numfont);font-weight:500}#wbox .wcount span{color:var(--tx2);font-weight:500}
 #wbox .wlast{color:var(--tx)}#wbox .wlast:empty{display:none}
-.upList{width:300px;padding:10px 12px!important;display:flex;flex-direction:column;gap:4px}.upList h4{margin:0 0 4px;font-size:12px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em}
+.upList{width:300px;max-height:calc(100vh - 340px);overflow:hidden;padding:10px 12px!important;display:flex;flex-direction:column;gap:4px}.upList h4{margin:0 0 4px;font-size:12px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em}
 .upRow{position:relative;display:grid;grid-template-columns:62px 1fr auto;gap:8px;align-items:center;padding:6px 8px 6px 12px;border-radius:8px;background:var(--s1);font-family:var(--numfont);font-size:14px;color:var(--tx);overflow:hidden}
 .upRow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--z)}.upRow i{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--acc) 16%,transparent);pointer-events:none}
 .upRow small{color:var(--tx2);font-size:12px}.upRow.now{outline:1px solid var(--acc)}.upRow.done{opacity:.55}.upRow b{font-weight:500}
+.upRow.up2{grid-template-columns:1fr auto}.upRow.up2.now b,.upRow.up2.now span{color:var(--acc)}
 .upSet{font-family:var(--uifont);font-size:12px;color:var(--tx2);margin:6px 0 0}
 .upTl{position:relative;height:340px;border-radius:10px;background:var(--s1);overflow:hidden}.upTl .blk2{position:absolute;left:0;border-radius:0 6px 6px 0;background:var(--z);opacity:.9}.upTl .lb{position:absolute;right:8px;font-family:var(--numfont);font-size:12px;color:var(--tx);white-space:nowrap}
 .upTl .lb.cur{color:var(--acc);font-size:14px}.upTl .nowl{position:absolute;left:0;right:0;top:0;height:2px;background:var(--acc)}.upTl .tm{position:absolute;left:6px;font-family:var(--numfont);font-size:11px;color:var(--tx2)}
@@ -1394,7 +1395,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.8</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.9</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2873,7 +2874,7 @@ function updateHUD() {
   $('#wBias').textContent = [ride.bias ? 'Intensität ' + (ride.bias > 0 ? '+' : ride.bias < 0 ? '−' : '±') + Math.abs(ride.bias) + ' %' : '', pmActive() && settings.erg ? 'PowerMatch: Trainer ' + (live.pmOffset >= 0 ? '+' : '') + Math.round(live.pmOffset) + ' W' : ''].filter(Boolean).join(' · ');
 }
 // ---------- Spalte „Was kommt“: anstehende Abschnitte (Vorschau-Varianten ?liste=a|b|c) ----------
-const UPL = new URLSearchParams(location.search).get('liste') || settings.upList || 'b'; // Standard seit 6.8: Zeitstrahl
+const UPL = new URLSearchParams(location.search).get('liste') || settings.upList || 'd'; // Standard seit 6.9: Zeilen im Look von C mit allen Abschnitten (Watt · Dauer)
 function renderUpList(wo, t) {
   const box = $('#upList');
   if (!UPL || !wo || wo.manual || ride.woDone || !(ride.state === 'running' || ride.state === 'paused')) { box.style.display = 'none'; return; }
@@ -2882,7 +2883,16 @@ function renderUpList(wo, t) {
   const zc = s => s.free ? 'var(--ln)' : ZC[(q => q < .55 ? 0 : q < .75 ? 1 : q < .9 ? 2 : q < 1.05 ? 3 : q < 1.2 ? 4 : q < 1.5 ? 5 : 6)(segWatts(s, .5, ftp) / ftp)];
   let acc = 0; const segs = wo.segs.map(s => { const o = { s, start: acc, end: acc + s.dur }; acc += s.dur; return o; });
   const ci = segs.findIndex(x => t < x.end);
-  if (UPL === 'a') { // Liste der nächsten Abschnitte
+  if (UPL === 'd') { // Zeilen wie C: alle kommenden Abschnitte mit Watt und Dauer, Serien-Überschrift, aktueller Abschnitt zählt herunter
+    const IV = woIntervals(wo), setOf = x => { const iv = IV.find(v => x.start < v.end); return iv && x.end > (IV.find(v => v.set === iv.set)?.start ?? 1e9) - 0.1 ? iv.set : -1; };
+    let html = '<h4>Als Nächstes</h4>', lastSet = null;
+    segs.slice(ci, ci + 10).forEach((x, k) => {
+      const st = IV.nSets > 1 ? setOf(x) : -1;
+      if (st >= 0 && st !== lastSet) { html += `<div class="upSet">Serie ${st + 1} / ${IV.nSets}</div>`; lastSet = st; } else if (st < 0) lastSet = -1;
+      html += `<div class="upRow up2${k ? '' : ' now'}" style="--z:${zc(x.s)}">${k ? '' : `<i style="width:${(t - x.start) / x.s.dur * 100}%"></i>`}<b>${W_(x.s)}</b><span>${fmtT(k ? x.s.dur : x.end - t)}</span></div>`;
+    });
+    box.innerHTML = html;
+  } else if (UPL === 'a') { // Liste der nächsten Abschnitte
     box.innerHTML = '<h4>Als Nächstes</h4>' + segs.slice(ci, ci + 7).map((x, k) => `<div class="upRow${k ? '' : ' now'}" style="--z:${zc(x.s)}">${k ? '' : `<i style="width:${(t - x.start) / x.s.dur * 100}%"></i>`}<small>${k ? 'in ' + fmtT(x.start - t) : 'jetzt'}</small><span>${fmtT(k ? x.s.dur : x.end - t)}</span><b>${W_(x.s)}</b></div>`).join('');
   } else if (UPL === 'b') { // Zeitstrahl: die nächsten 8 Minuten von oben nach unten, Breite = Leistung
     const win = 480, H = 340, px = H / win, maxW = Math.max(...wo.segs.map(s => segWatts(s, 1, ftp) || 0), 1);

@@ -1374,7 +1374,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.0</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.1</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -4592,7 +4592,8 @@ async function stravaAccess() {
   if (Date.now() / 1000 > strava.expires - 120) await stravaToken({ grant_type: 'refresh_token', refresh_token: strava.refresh });
   return strava.access;
 }
-const rideTitle = rd => { const r = rd.routeName.replace(/ · [\d.]+ km.*$/, '').replace(/^Karlsruhe · /, ''); return 'Indoor kurbeln: ' + r + (rd.workoutName ? ' · ' + rd.workoutName : ''); };
+const woShort = n => (n || '').replace(/ · Stufe \d+/, ''); // „40/20 · Stufe 4 · 3×10“ → „40/20 · 3×10“
+const rideTitle = rd => { const r = rd.routeName.replace(/ · [\d.]+ km.*$/, '').replace(/^Karlsruhe · /, ''); return 'Indoor kurbeln: ' + r + (rd.workoutName ? ' · ' + woShort(rd.workoutName) : ''); };
 // Strava-Beschreibung (Strecke/Workout stehen schon im Titel): Kernwerte, ggf. Powermeter-Vergleich, Hinweis auf die Website
 const stravaDesc = (rd, st) => [
   `${(st.dist / 1000).toFixed(1).replace('.', ',')} km · ${fmtT(st.timer)} · NP ${Math.round(st.np)} W`,
@@ -4751,7 +4752,7 @@ async function buildShareImage(rd) {
   g.fillStyle = TX2; g.font = `400 26px ${MONO}`; g.textAlign = 'right'; g.fillText(new Date(rd.start).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }), W - pad, pad + 38); g.textAlign = 'left';
   const title = rd.routeName.replace(/ · [\d.]+ km.*$/, '').replace(/^Karlsruhe · /, '');
   g.fillStyle = TX; g.font = `800 ${title.length > 18 ? 64 : 84}px ${UI}`; g.fillText(title, pad, 250, W - 2 * pad);
-  if (rd.workoutName) { g.fillStyle = ACC; g.font = `500 34px ${UI}`; g.fillText(rd.workoutName, pad, 302, W - 2 * pad); }
+  if (rd.workoutName) { g.fillStyle = ACC; g.font = `500 34px ${UI}`; g.fillText(woShort(rd.workoutName), pad, 302, W - 2 * pad); }
   // Strecke
   const mapTop = 340, mapH = 400;
   if (route) {

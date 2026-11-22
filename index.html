@@ -139,6 +139,8 @@ details summary{cursor:pointer;color:#8ab4ff;font-size:13px;margin-top:6px}
 .upRow{position:relative;display:grid;grid-template-columns:62px 1fr auto;gap:8px;align-items:center;padding:6px 8px 6px 12px;border-radius:8px;background:var(--s1);font-family:var(--numfont);font-size:14px;color:var(--tx);overflow:hidden}
 .upRow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--z)}.upRow i{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--acc) 16%,transparent);pointer-events:none}
 .upRow small{color:var(--tx2);font-size:12px}.upRow.now{outline:1px solid var(--acc)}.upRow.done{opacity:.55}.upRow b{font-weight:500}
+.hasUp #wbox .wsubInfo,.hasUp #wbox .wlast{display:none}
+.upHead{display:flex;align-items:center;gap:6px;margin-bottom:4px}.upHead h4{margin:0;flex:1}.upHead small{font-family:var(--numfont);font-size:12px;color:var(--tx2)}.upHead button{padding:0 8px!important;font-size:13px!important;line-height:20px;min-width:0}
 .upRow.up2{grid-template-columns:1fr auto}.upRow.up2.now b,.upRow.up2.now span{color:var(--acc)}
 .upSet{font-family:var(--uifont);font-size:12px;color:var(--tx2);margin:6px 0 0}
 .upTl{position:relative;height:340px;border-radius:10px;background:var(--s1);overflow:hidden}.upTl .blk2{position:absolute;left:0;border-radius:0 6px 6px 0;background:var(--z);opacity:.9}.upTl .lb{position:absolute;right:8px;font-family:var(--numfont);font-size:12px;color:var(--tx);white-space:nowrap}
@@ -1326,7 +1328,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <div class="wc"><div class="wl">Intervall</div><div class="tgt" id="wRem">0:00</div></div>
     </div>
     <div class="bar"><div id="wBar"></div></div>
-    <div class="sub">Workout noch <span id="wTot">0:00</span> · <span id="wNext"></span></div>
+    <div class="sub wsubInfo">Workout noch <span id="wTot">0:00</span> · <span id="wNext"></span></div>
     <div class="sub wlast" id="wLast"></div>
     <div class="sub" id="wBias"></div>
   </div>
@@ -1395,7 +1397,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.9</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.0</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2676,7 +2678,7 @@ function tick() {
   if (ride.state === 'running' && !ride.started) { // warten auf die ersten Wattwerte
     if (live.power >= 10 && Date.now() - live.lastData < 2000) {
       ride.started = true; ride.startTs = Date.now(); lastTick = performance.now();
-      toast(ride.workout ? '▶ Los geht\'s: ' + ride.workout.name : '▶ Los geht\'s – viel Spaß auf ' + route.name.split(' · ')[0] + '!', 3500); beep(880, .15);
+      beep(880, .15);
     }
   }
   if (ride.state === 'running' && ride.started) {
@@ -2837,7 +2839,7 @@ function updateHUD() {
   // Workout-Box
   const wo = (ride.state === 'running' || ride.state === 'paused') ? ride.workout : null;
   const box = $('#wbox');
-  $('#cdown').style.display = 'none'; if (!wo || wo.manual || ride.woDone) $('#upList').style.display = 'none';
+  $('#cdown').style.display = 'none'; if (!wo || wo.manual || ride.woDone) { $('#upList').style.display = 'none'; $('#stage').classList.remove('hasUp'); }
   $('#hPbox').style.display = wo ? 'none' : '';
   if (!wo) { box.style.display = 'none'; return; }
   box.style.display = '';
@@ -2877,7 +2879,9 @@ function updateHUD() {
 const UPL = new URLSearchParams(location.search).get('liste') || settings.upList || 'd'; // Standard seit 6.9: Zeilen im Look von C mit allen Abschnitten (Watt · Dauer)
 function renderUpList(wo, t) {
   const box = $('#upList');
-  if (!UPL || !wo || wo.manual || ride.woDone || !(ride.state === 'running' || ride.state === 'paused')) { box.style.display = 'none'; return; }
+  const on = !!(UPL && wo && !wo.manual && !ride.woDone && (ride.state === 'running' || ride.state === 'paused') && innerWidth > 760);
+  $('#stage').classList.toggle('hasUp', on);
+  if (!on) { box.style.display = 'none'; return; }
   box.style.display = '';
   const ftp = settings.ftp, bias = 1 + ride.bias / 100, W_ = s => { const w = segWatts(s, 0, ftp), w1 = segWatts(s, 1, ftp); return w == null ? 'frei' : Math.round(w * bias) === Math.round(w1 * bias) ? Math.round(w * bias) + ' W' : Math.round(w * bias) + '→' + Math.round(w1 * bias); };
   const zc = s => s.free ? 'var(--ln)' : ZC[(q => q < .55 ? 0 : q < .75 ? 1 : q < .9 ? 2 : q < 1.05 ? 3 : q < 1.2 ? 4 : q < 1.5 ? 5 : 6)(segWatts(s, .5, ftp) / ftp)];
@@ -2885,13 +2889,16 @@ function renderUpList(wo, t) {
   const ci = segs.findIndex(x => t < x.end);
   if (UPL === 'd') { // Zeilen wie C: alle kommenden Abschnitte mit Watt und Dauer, Serien-Überschrift, aktueller Abschnitt zählt herunter
     const IV = woIntervals(wo), setOf = x => { const iv = IV.find(v => x.start < v.end); return iv && x.end > (IV.find(v => v.set === iv.set)?.start ?? 1e9) - 0.1 ? iv.set : -1; };
-    let html = '<h4>Als Nächstes</h4>', lastSet = null;
-    segs.slice(ci, ci + 10).forEach((x, k) => {
+    const nR = settings.upRows || 6, L = ride.lastIv;
+    let html = `<div class="upHead"><h4>Als Nächstes</h4><small>noch ${fmtT(woTotal(wo) - t)}</small><button data-up="-1" title="Weniger Zeilen">−</button><button data-up="1" title="Mehr Zeilen">+</button></div>`, lastSet = null;
+    if (L && L.tgt && !IV.some(v => t >= v.start && t < v.end)) html += `<div class="upRow up2 done" style="--z:var(--acc)"><b>Letztes Ø ${Math.round(L.avg)} W</b><span>Ziel ${Math.round(L.tgt)}</span></div>`;
+    segs.slice(ci, ci + nR).forEach((x, k) => {
       const st = IV.nSets > 1 ? setOf(x) : -1;
       if (st >= 0 && st !== lastSet) { html += `<div class="upSet">Serie ${st + 1} / ${IV.nSets}</div>`; lastSet = st; } else if (st < 0) lastSet = -1;
       html += `<div class="upRow up2${k ? '' : ' now'}" style="--z:${zc(x.s)}">${k ? '' : `<i style="width:${(t - x.start) / x.s.dur * 100}%"></i>`}<b>${W_(x.s)}</b><span>${fmtT(k ? x.s.dur : x.end - t)}</span></div>`;
     });
     box.innerHTML = html;
+    box.onpointerdown = e => { const b = e.target.closest('[data-up]'); if (!b) return; e.preventDefault(); settings.upRows = clamp((settings.upRows || 6) + +b.dataset.up, 2, 14); saveSettings(); renderUpList(wo, ride.elapsed + ride.wSkip); }; // einmalig je Box, überlebt das Neuzeichnen
   } else if (UPL === 'a') { // Liste der nächsten Abschnitte
     box.innerHTML = '<h4>Als Nächstes</h4>' + segs.slice(ci, ci + 7).map((x, k) => `<div class="upRow${k ? '' : ' now'}" style="--z:${zc(x.s)}">${k ? '' : `<i style="width:${(t - x.start) / x.s.dur * 100}%"></i>`}<small>${k ? 'in ' + fmtT(x.start - t) : 'jetzt'}</small><span>${fmtT(k ? x.s.dur : x.end - t)}</span><b>${W_(x.s)}</b></div>`).join('');
   } else if (UPL === 'b') { // Zeitstrahl: die nächsten 8 Minuten von oben nach unten, Breite = Leistung

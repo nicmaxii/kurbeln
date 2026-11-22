@@ -279,7 +279,8 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 #setup .dfSeg button.on{background:var(--sel)!important;color:var(--onsel)!important;border-color:var(--sel)!important}#setup .dfSeg button.on small{color:var(--onsel);opacity:.75}
 #calDlg button.primary,#dashDlg button.primary,#planDlg .actions button.primary{background:var(--acc)!important;border:0!important;border-radius:999px!important;font-weight:800!important;color:var(--onacc)!important;padding:10px 22px!important;box-shadow:none}
 #calDlg button.primary:disabled{opacity:.5}
-#dashDlg .card.dash{width:min(1040px,100%);padding:26px 28px;background:var(--s1)}
+#dashDlg .card.dash{width:min(1440px,100%);padding:26px 28px;background:var(--s1)}
+@media (min-width:1300px){#dashDlg .dChart{min-height:200px}}
 .dTiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:12px}
 .dCoach{margin-top:16px}
 .goalBig{font-size:30px;font-weight:600;color:var(--tx);font-family:var(--numfont);letter-spacing:-.04em}.goalBig span{font-size:15px;color:var(--tx2);font-family:var(--uifont);letter-spacing:0;margin-left:6px}
@@ -288,7 +289,7 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 .goalDays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}.goalDays div{text-align:center;font-size:11px;color:var(--tx2)}.goalDays b{display:block;height:34px;border-radius:6px;background:var(--s2);position:relative;overflow:hidden;margin-bottom:3px}.goalDays b i{position:absolute;left:0;right:0;bottom:0;background:var(--acc)}
 .calNav{padding:2px 10px!important;font-size:16px!important;line-height:1.2}
 .calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.calGrid .cw{text-align:center;font-size:11px;color:var(--tx2);padding-bottom:2px}
-.calGrid .cd{aspect-ratio:1/0.82;border-radius:8px;background:var(--s1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;color:var(--tx2);font-family:var(--numfont);border:1px solid transparent}
+.calGrid .cd{height:44px;border-radius:8px;background:var(--s1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;color:var(--tx2);font-family:var(--numfont);border:1px solid transparent}
 .calGrid .cd.out{opacity:.35}.calGrid .cd.today{border-color:var(--acc);color:var(--tx)}.calGrid .cd.has{color:var(--tx);cursor:pointer}.calGrid .cd.has:hover{background:var(--s2)}
 .calGrid .cd i{display:block;border-radius:50%;background:var(--acc)}.calGrid .cd.plan i{background:transparent;border:1.5px solid var(--tx2)}
 .calSum{margin-top:8px;font-size:13px;color:var(--tx2)}
@@ -1374,7 +1375,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.1</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.2</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1448,7 +1449,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Dashboard -->
   <div class="overlay" id="dashDlg" style="display:none">
     <div class="card menu dash">
-      <div class="mhead"><h2>Dashboard</h2><div class="spacer" style="flex:1"></div><button class="primary" id="dashClose">Schließen</button></div>
+      <div class="mhead"><h2>Dashboard</h2><div class="spacer" style="flex:1"></div><button class="primary" id="dashClose" title="Zum Fahrt-Menü: Strecke und Workout wählen">Kurbeln</button></div>
       <section class="dCard dCoach"><h3>Heute empfohlen <span class="i" data-tip="Der Coach schaut auf deine letzten Fahrten: Wie frisch bist du (Form), wann warst du zuletzt hart unterwegs, wie viel bist du diese Woche gefahren und was steht im Plan. Daraus schlägt er 2–3 passende Einheiten vor.">i</span></h3><p class="sub" id="dCoachTxt"></p><div class="coachRow" id="dCoach"></div></section>
       <div class="dTiles" id="dTiles"></div>
       <div class="dGrid2">
@@ -4562,7 +4563,7 @@ async function edSave() {
 }
 $('#btnNewWo').onclick = () => openEditor(null);
 $('#btnDash').onclick = () => { if (ride.state === 'running') return toast('Während der Fahrt nicht möglich – erst pausieren oder beenden.'); openDash(); };
-$('#dashClose').onclick = () => { $('#dashDlg').style.display = 'none'; tipHide(); };
+$('#dashClose').onclick = () => { $('#dashDlg').style.display = 'none'; tipHide(); $('#btnSetup').click(); };
 window.addEventListener('resize', () => { if ($('#dashDlg').style.display === 'flex') openDash(); });
 $('#btnCal').onclick = () => { connDD.classList.remove('open'); openCal(); };
 $('#calTGo').onclick = calTrainer; $('#calPGo').onclick = calPM; $('#calClose').onclick = () => { $('#calDlg').style.display = 'none'; };

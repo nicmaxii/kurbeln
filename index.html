@@ -261,7 +261,7 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 .lnav .brand{position:absolute;left:22px;font-weight:600;font-size:17px;letter-spacing:-.02em;opacity:1}
 .lnav .cta{position:absolute;right:16px;background:var(--acc);color:var(--onacc);border-radius:980px;padding:5px 14px;font-size:12px;opacity:1}
 .lhero{position:absolute;left:0;right:0;top:calc(48px + 5vh);text-align:center;z-index:1;opacity:calc(1 - var(--p) * 3);transform:translateY(calc(var(--p) * -80px));pointer-events:none;padding:0 16px}
-.lhero h1{margin:0 0 6px;font-size:clamp(52px,7.5vw,104px);font-weight:700;letter-spacing:-.04em;line-height:1.02}
+.lhero h1{text-shadow:0 2px 30px rgba(0,0,0,.55);margin:0 0 6px;font-size:clamp(52px,7.5vw,104px);font-weight:700;letter-spacing:-.04em;line-height:1.02}
 .lhero p{margin:10px 0 0;font-family:var(--uifont);font-weight:600;font-size:clamp(17px,1.7vw,24px);letter-spacing:-.02em;color:var(--tx2)}
 .lbtns{margin-top:22px;display:flex;gap:24px;justify-content:center;align-items:center;pointer-events:auto}
 .lbtns .b1{background:var(--acc);color:var(--onacc);border:0;border-radius:980px;padding:11px 22px;font-size:17px;cursor:pointer;font-family:inherit}
@@ -1385,7 +1385,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.5</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.6</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -4960,13 +4960,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   const trail = document.getElementById('ltrail'), tc = trail.getContext('2d'), still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Fahrtwind hinter der Kurbel: dezente helle Linien ziehen langsam nach links
   const lines = [];
+  // Aufbau-Varianten zur Vorschau (?bild=1|2|3): Position/Größe der Kurbel und Breite der Speed-Linien
+  const LAY = { '': { x: 0, y: null, z: 15.5, zn: 33, band: [0.42, 0.84] }, '1': { x: 0, y: 0.55, z: 11, zn: 22, band: [0.12, 0.92] }, '2': { x: 3.4, y: -0.6, z: 9.5, zn: 20, band: [0.1, 0.95] }, '3': { x: 0, y: -2.3, z: 9.5, zn: 21, band: [0.3, 0.98] } }[new URLSearchParams(location.search).get('bild') || ''] || { x: 0, y: null, z: 15.5, zn: 33, band: [0.42, 0.84] };
+  const lineY = H => H * (LAY.band[0] + Math.random() * (LAY.band[1] - LAY.band[0]));
   function drawFx(p, dt) {
     const W = trail.width, H = trail.height, k = 1 - sm(0.2, 0.6, p);
     tc.clearRect(0, 0, W, H);
-    while (lines.length < 30) lines.push({ x: Math.random() * W * 1.4, y: H * (0.42 + Math.random() * 0.42), l: 30 + Math.random() * 150, v: 110 + Math.random() * 220, a: 0.06 + Math.random() * 0.2, c: Math.random() < 0.25 });
+    while (lines.length < (LAY.band[1] - LAY.band[0] > 0.6 ? 55 : 30)) lines.push({ x: Math.random() * W * 1.4, y: lineY(H), l: 30 + Math.random() * 150, v: 110 + Math.random() * 220, a: 0.06 + Math.random() * 0.2, c: Math.random() < 0.25 });
     tc.lineCap = 'round';
     for (const ln of lines) {
-      ln.x -= ln.v * dt; if (ln.x + ln.l < 0) { ln.x = W + Math.random() * W * 0.4; ln.y = H * (0.42 + Math.random() * 0.42); }
+      ln.x -= ln.v * dt; if (ln.x + ln.l < 0) { ln.x = W + Math.random() * W * 0.4; ln.y = lineY(H); }
       tc.strokeStyle = ln.c ? `rgba(237,255,154,${ln.a * k})` : `rgba(242,242,238,${ln.a * 0.7 * k})`; tc.lineWidth = ln.c ? 1.4 : 1;
       tc.beginPath(); tc.moveTo(ln.x, ln.y); tc.lineTo(ln.x + ln.l, ln.y); tc.stroke();
     }
@@ -5103,10 +5106,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const idleY = 0.62 + Math.sin(t * 0.25) * 0.12 + mouse.x * 0.35, idleX = -0.22 + mouse.y * 0.2;
     crankset.rotation.y = idleY * (1 - sm(0, 0.55, p)); crankset.rotation.x = idleX * (1 - sm(0, 0.55, p));
     const narrow = innerWidth / innerHeight < 1;
-    crankset.position.y = (narrow ? -1.3 : -1.55) * (1 - sm(0, 0.5, p));
-    const z0 = narrow ? 33 : 15.5; // etwas näher = größere Kurbel
+    crankset.position.y = (LAY.y ?? (narrow ? -1.3 : -1.55)) * (1 - sm(0, 0.5, p)); crankset.position.x = (narrow ? LAY.x * 0.4 : LAY.x) * (1 - sm(0, 0.5, p));
+    const z0 = narrow ? LAY.zn : LAY.z; // etwas näher = größere Kurbel
     camera.position.set(mouse.x * 0.6 * (1 - p), 0.6 * (1 - p) + mouse.y * -0.3 * (1 - p), z0 + (-0.6 - z0) * e);
-    camera.lookAt(0, crankset.position.y * 0.35 * (1 - e), -10 * e);
+    camera.lookAt(0, (LAY.y == null ? crankset.position.y * 0.35 : 0) * (1 - e), -10 * e);
     shadow.position.y = crankset.position.y - 2.35; shadow.material.opacity = 1 - sm(0, 0.3, p);
     renderer.render(scene, camera);
     if (!still) drawFx(p, dt);

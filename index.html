@@ -1374,7 +1374,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.9</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.0</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2212,7 +2212,7 @@ function parseERG(text, fname) {
 }
 
 // ---------- Bluetooth ----------
-const live = { power: 0, cadence: 0, hr: 0, lastData: 0, lastHr: 0, trainerPower: 0, trainerLast: 0, pmLast: 0, pmHasCad: false, pmOffset: 0 };
+const live = { power: 0, cadence: 0, hr: 0, lastData: 0, lastHr: 0, trainerPower: 0, trainerLast: 0, pmLast: 0, pmHasCad: false, pmOffset: 0, pmK: 0 };
 // Powermeter aktiv = verbunden, liefert Daten, und PowerMatch eingeschaltet
 const pmActive = () => !!pm && settings.powerMatch && Date.now() - live.pmLast < 3000;
 // Plausibilität: weichen Powermeter und Trainer dauerhaft > 25 % ab, stimmt etwas nicht (Kalibrierung, falsches Gerät, nur ein Pedal …)
@@ -2221,7 +2221,7 @@ function checkPmDev() {
   const pA = avgHist(powerHist), tA = avgHist(trainerHist), now = Date.now();
   if (!fresh || tA < 80 || !settings.powerMatch) { live.devSince = 0; return; }
   const r = pA / tA;
-  if (Math.abs(1 - r) > 0.25) { live.devSince ||= now; if (now - live.devSince > 8000 && !live.pmDev) { live.pmDev = true; live.pmOffset = 0; ride.lastSent = {}; controlTrainer(true);
+  if (Math.abs(1 - r) > 0.25) { live.devSince ||= now; if (now - live.devSince > 8000 && !live.pmDev) { live.pmDev = true; live.pmOffset = 0; live.pmK = 0; ride.lastSent = {}; controlTrainer(true);
       toast('Powermeter ' + Math.round(pA) + ' W, Trainer ' + Math.round(tA) + ' W – das passt nicht zusammen. PowerMatch-Korrektur pausiert. Pedale kalibrieren (Nullabgleich in der Hersteller-App), Batterie prüfen und nachsehen, ob wirklich das Powermeter verbunden ist.', 12000); } }
   else if (Math.abs(1 - r) < 0.15) { live.devSince = 0; live.pmDev = false; }
 }
@@ -2289,7 +2289,7 @@ class PowerMeter {
     const dv = await wait; this.cpRes = null;
     if (!dv) return { ok: false, why: 'Keine Antwort vom Powermeter. Kurz treten, damit es aufwacht, dann erneut versuchen.' };
     const code = dv.getUint8(2);
-    if (code === 1) { const off = dv.byteLength >= 5 ? dv.getInt16(3, true) : null; this.lastOffset = this.offsetNow ?? null; this.offsetNow = off; live.pmOffset = 0; live.pmDev = false; return { ok: true, offset: off }; }
+    if (code === 1) { const off = dv.byteLength >= 5 ? dv.getInt16(3, true) : null; this.lastOffset = this.offsetNow ?? null; this.offsetNow = off; live.pmOffset = 0; live.pmK = 0; live.pmDev = false; return { ok: true, offset: off }; }
     return { ok: false, why: code === 2 ? 'Dein Powermeter unterstützt den Nullabgleich über Bluetooth nicht – bitte in der Hersteller-App kalibrieren.' : code === 4 ? 'Nullabgleich fehlgeschlagen. Ausklicken, Kurbel ruhig stehen lassen (nicht belasten) und erneut versuchen.' : 'Fehler (Code ' + code + ').' };
   }
   close() { this.userClosed = true; try { this.device.gatt.disconnect(); } catch (e) {} }
@@ -2529,6 +2529,7 @@ const avgHist = h => h.length ? h.reduce((a, x) => a + x[1], 0) / h.length : 0;
 let wakeLock = null;
 
 function startRide() {
+  live.pmK = clamp(settings.pmK || 0, -0.15, 0.15); // PowerMatch-Faktor der letzten Fahrt als Startwert
   if (!trainer) { toast('Noch kein Trainer verbunden – bitte oben unter „Connections“ den Trainer verbinden (oder die Demo starten).', 6000); setTimeout(() => { connDD.classList.add('open'); $('#btnConn').setAttribute('aria-expanded', true); updConnServices(); }, 0); return; }
   readSetup();
   Object.assign(ride, { state: 'running', started: false, elapsed: 0, distance: 0, v: 0, heading: 0, samples: [], lastSec: -1, bias: dayBias(), wSkip: 0, lastSent: {}, startTs: Date.now(), route, workout: workoutById(settings.workoutId), woDone: false, finished: false, textIdx: 0, poiIdx: 0, lap: 0, lastSave: 0, beeped: -1, tgt: [] });
@@ -2558,6 +2559,7 @@ function pauseRide() {
   else if (ride.state === 'paused') { ride.state = 'running'; $('#btnPause').textContent = 'Pause'; lastTick = performance.now(); vidControl(true); }
 }
 function stopRide() {
+  if (live.pmK) saveSettings(); // gelernten PowerMatch-Faktor merken
   if (ride.state !== 'running' && ride.state !== 'paused') return;
   if (ride.samples.length > 10 && !confirmStop()) return;
   ride.state = 'done';
@@ -2587,7 +2589,7 @@ function controlTrainer(force) {
   const tgt = (ride.state === 'running' || ride.state === 'paused') && settings.erg ? currentTarget() : null;
   const L = ride.lastSent, now = Date.now();
   if (tgt != null) {
-    const off = pmActive() ? Math.round(live.pmOffset) : 0, cmd = tgt + off;
+    const off = pmActive() ? Math.round(tgt * (live.pmK || 0)) : 0, cmd = tgt + off; live.pmOffset = off;
     if (L.tgt == null || Math.abs(L.tgt - tgt) > 15) ride.tgtTs = now; // Sprung im Workout: Trainer erst einregeln lassen
     if (force || L.mode !== 'erg' || L.tgt !== tgt || Math.abs(L.v - cmd) >= 3 || now - L.t > 10000) { trainer.setTargetPower(cmd); Object.assign(L, { mode: 'erg', v: cmd, tgt, off, t: now }); }
   } else {
@@ -2642,9 +2644,10 @@ function tick() {
     // Braucht keine Wattwerte vom Trainer – funktioniert also auch, wenn der Trainer selbst keine oder ungenaue Watt meldet.
     { const tgt = settings.erg ? currentTarget() : null;
       if (pmActive() && trainer?.controllable && tgt != null && live.cadence > 20 && Date.now() - (ride.tgtTs || 0) > 4000) {
+        // seit v6.0: Korrektur als Faktor (gilt für alle Wattstufen, z. B. 40/20) und ruhiger gelernt (≈ 25 s statt 5 s),
+        // damit das Rauschen eines (einseitigen) Powermeters den Trainer nicht hin- und herzieht; nur ab 8 s nach Zielwechsel
         const pAvg = avgHist(powerHist);
-        const lim = Math.max(20, tgt * 0.15); // Powermeter und Trainer weichen normal höchstens ein paar Prozent ab
-        if (pAvg > 30 && !live.pmDev) live.pmOffset = clamp(live.pmOffset + (tgt - pAvg) * dt / 5, -lim, lim);
+        if (pAvg > 30 && !live.pmDev && Date.now() - (ride.tgtTs || 0) > 8000) { live.pmK = clamp((live.pmK || 0) + (tgt - pAvg) / tgt * dt / 25, -0.15, 0.15); settings.pmK = live.pmK; }
       } }
     const pois = route.pois || [];
     while (ride.poiIdx < pois.length && pois[ride.poiIdx].d <= (route.loop ? ride.distance % route.len : ride.distance)) { if (ride.distance - pois[ride.poiIdx].d < 200 || route.loop) toast(pois[ride.poiIdx].name, 3500); ride.poiIdx++; }
@@ -4706,7 +4709,7 @@ $('#btnTrainer').onclick = async () => {
 $('#btnPM').onclick = async () => {
   if (trainer?.kind === 'demo') { pm?.close(); pm = new DemoPowerMeter(); setStatus('pm', 'on', pm.name); toast('Demo-Powermeter (misst 4 % weniger als der Trainer)'); return; }
   if (!btOk()) return;
-  try { const p = new PowerMeter(); await p.connect(); if (trainer?.device && trainer.device.id === p.device.id) { p.userClosed = true; setStatus('pm', pm ? 'on' : '', pm ? pm.name : 'Kein Powermeter'); toast('Das ist dein Trainer – für den Powermeter bitte die Pedale/Kurbel auswählen.', 6000); return; } pm?.close(); pm = p; live.pmOffset = 0; if (!settings.powerMatch) toast('Hinweis: PowerMatch ist im Setup ausgeschaltet.', 4000); }
+  try { const p = new PowerMeter(); await p.connect(); if (trainer?.device && trainer.device.id === p.device.id) { p.userClosed = true; setStatus('pm', pm ? 'on' : '', pm ? pm.name : 'Kein Powermeter'); toast('Das ist dein Trainer – für den Powermeter bitte die Pedale/Kurbel auswählen.', 6000); return; } pm?.close(); pm = p; live.pmOffset = 0; live.pmK = 0; if (!settings.powerMatch) toast('Hinweis: PowerMatch ist im Setup ausgeschaltet.', 4000); }
   catch (e) { if (e.name !== 'NotFoundError') toast('Powermeter: ' + e.message, 5000); setStatus('pm', pm ? 'on' : '', pm ? pm.name : 'Kein Powermeter'); }
 };
 $('#btnHR').onclick = async () => {

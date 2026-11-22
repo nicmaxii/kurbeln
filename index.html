@@ -1385,7 +1385,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.4</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.5</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -4991,8 +4991,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   const graphite = new THREE.MeshPhysicalMaterial({ color: 0x3a3b40, metalness: 0.9, roughness: 0.32 });
   const carbon = new THREE.MeshPhysicalMaterial({ color: 0x141416, metalness: 0.35, roughness: 0.38, clearcoat: 1, clearcoatRoughness: 0.08 });
   const rubber = new THREE.MeshPhysicalMaterial({ color: 0x1b1b1d, metalness: 0.1, roughness: 0.6 });
-  // Varianten der Kurbel (Vorschau über ?kurbel=a|b|c|d, sonst settings.crankStyle): a Lime-Akzente, b Stealth schwarz, c Powermeter-Spider, d mit Kette
-  const CV = (new URLSearchParams(location.search).get('kurbel') || (JSON.parse(localStorage.getItem('kurbel.settings') || '{}').crankStyle) || '').toLowerCase();
+  // Varianten der Kurbel (Vorschau über ?kurbel=silber|a|b|c|d): Standard seit 6.5 = b Stealth schwarz ohne Lime (von Max gewählt); a Lime-Akzente, c Powermeter-Spider, d mit Kette
+  const CV = (new URLSearchParams(location.search).get('kurbel') || 'b').toLowerCase();
   const lime = new THREE.MeshPhysicalMaterial({ color: 0xedff9a, metalness: 0.55, roughness: 0.28, clearcoat: 0.6 });
   if (CV === 'b') { silver.color.set(0x2a2b2f); silver.roughness = 0.34; graphite.color.set(0x151517); carbon.color.set(0x0c0c0d); }
 
@@ -5021,7 +5021,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   rotor.add(chainring(1.58, 34, 0.07, graphite, -0.16, 4));
   for (let k = 0; k < 4; k++) { // Kettenblattschrauben
     const a = k / 4 * Math.PI * 2 + Math.PI / 4, r = 1.55;
-    const b = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.12, 24), CV === 'a' || CV === 'b' ? lime : silver); b.rotation.x = Math.PI / 2; b.position.set(r * Math.cos(a), r * Math.sin(a), 0.06); rotor.add(b);
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.12, 24), CV === 'a' ? lime : silver); b.rotation.x = Math.PI / 2; b.position.set(r * Math.cos(a), r * Math.sin(a), 0.06); rotor.add(b);
   }
   function arm(len, r1, r2, depth, holeR) {
     const phi = Math.acos((r1 - r2) / len), sh = new THREE.Shape();
@@ -5037,7 +5037,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   // hohle Tretlagerachse (hier geht's beim Zoomen hinein)
   const spindle = new THREE.Mesh(new THREE.LatheGeometry([new THREE.Vector2(0.17, 0.55), new THREE.Vector2(0.215, 0.55), new THREE.Vector2(0.215, -1.95), new THREE.Vector2(0.17, -1.95), new THREE.Vector2(0.17, 0.55)].reverse(), 64), silver);
   spindle.rotation.x = Math.PI / 2; rotor.add(spindle);
-  const glow = new THREE.Mesh(new THREE.CircleGeometry(0.17, 48), new THREE.MeshBasicMaterial({ color: CV === 'b' ? 0xedff9a : 0xffffff })); glow.position.z = -1.9; rotor.add(glow);
+  const glow = new THREE.Mesh(new THREE.CircleGeometry(0.17, 48), new THREE.MeshBasicMaterial({ color: 0xffffff })); glow.position.z = -1.9; rotor.add(glow);
   if (CV === 'a') { // feiner Lime-Ring auf dem großen Kettenblatt und Streifen auf dem Kurbelarm
     const ring = new THREE.Mesh(new THREE.TorusGeometry(1.86, 0.022, 12, 160), lime); ring.position.z = 0.05; rotor.add(ring);
   }
@@ -5104,7 +5104,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     crankset.rotation.y = idleY * (1 - sm(0, 0.55, p)); crankset.rotation.x = idleX * (1 - sm(0, 0.55, p));
     const narrow = innerWidth / innerHeight < 1;
     crankset.position.y = (narrow ? -1.3 : -1.55) * (1 - sm(0, 0.5, p));
-    const z0 = narrow ? 34 : 18.5; // etwas näher = größere Kurbel
+    const z0 = narrow ? 33 : 15.5; // etwas näher = größere Kurbel
     camera.position.set(mouse.x * 0.6 * (1 - p), 0.6 * (1 - p) + mouse.y * -0.3 * (1 - p), z0 + (-0.6 - z0) * e);
     camera.lookAt(0, crankset.position.y * 0.35 * (1 - e), -10 * e);
     shadow.position.y = crankset.position.y - 2.35; shadow.material.opacity = 1 - sm(0, 0.3, p);

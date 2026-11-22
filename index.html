@@ -380,7 +380,7 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 #routeInfo{display:none}
 /* Workout-Kategorien */
 #catRow.ccats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.dtip,.dtip b,.dtip div{color:var(--onsel)!important}
+.dtip{background:var(--s2)!important;border:1px solid var(--ln);box-shadow:0 8px 24px rgba(0,0,0,.5)!important}.dtip,.dtip div{color:var(--tx2)!important}.dtip b{color:var(--tx)!important}
 .subcats{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 12px}.subcats button{border-radius:999px;padding:4px 11px;font-size:13px;font-weight:500;background:transparent;color:var(--tx2);border:1px solid var(--ln)}.subcats button:hover{color:var(--tx)}.subcats button.on,#setup .subcats button.on{background:var(--sel)!important;color:var(--onsel)!important;border-color:var(--sel)!important}
 .ccats button{border:0;border-radius:14px;padding:8px 12px;font-weight:800;font-size:14px;background:var(--s1);color:var(--tx);display:flex;align-items:center;gap:6px;box-shadow:inset 0 -3px 0 color-mix(in srgb,var(--cc) 35%,#fff),0 1px 2px rgba(0,0,0,.05);transition:transform .1s}
 .ccats button:hover{transform:translateY(-2px)}
@@ -1398,7 +1398,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.2</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.3</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>

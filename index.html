@@ -133,6 +133,10 @@ details summary{cursor:pointer;color:#8ab4ff;font-size:13px;margin-top:6px}
 #wbox .bar{height:6px;background:#2d3642;border-radius:3px;margin:6px 0;overflow:hidden}
 #wbox .bar div{height:100%;background:var(--accent);width:0}
 #wbox .sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+#wbox .wcount{font-size:15px;font-weight:600;color:var(--tx);letter-spacing:.02em;margin-bottom:2px}#wbox .wcount b{color:var(--acc);font-family:var(--numfont);font-weight:500}#wbox .wcount span{color:var(--tx2);font-weight:500}
+#wbox .wlast{color:var(--tx)}#wbox .wlast:empty{display:none}
+#cdown{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);z-index:1150;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;background:color-mix(in srgb,var(--s0) 82%,transparent);border:1px solid var(--ln);border-radius:28px;padding:14px 34px 16px}
+#cdown b{font-family:var(--numfont);font-size:110px;line-height:1;color:var(--acc);font-weight:500}#cdown span{font-size:17px;color:var(--tx);white-space:nowrap}
 #controls{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:none;gap:8px;align-items:center;background:var(--hud);backdrop-filter:blur(6px);padding:8px;border-radius:12px;border:1px solid var(--hudline)}
 #controls .grp{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);padding:0 6px}
 #controls input[type=range]{width:110px}
@@ -283,6 +287,9 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 @media (min-width:1300px){#dashDlg .dChart{min-height:200px}}
 .dTiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:12px}
 .dCoach{margin-top:16px}
+.coachTop{display:flex;align-items:center;gap:22px;flex-wrap:wrap}.coachTop .sub{flex:1;min-width:240px;margin:0}
+.ready{display:flex;align-items:center;gap:14px}.ready small{font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:6px}.ready b{display:block;font-size:22px;color:var(--tx);font-weight:600}.ready p{margin:2px 0 0;font-size:13px;color:var(--tx2);max-width:260px}
+.trend{font-family:var(--numfont);color:var(--tx2);white-space:nowrap}.trend.up{color:var(--acc)}.trend.down{color:var(--tx)}
 .goalBig{font-size:30px;font-weight:600;color:var(--tx);font-family:var(--numfont);letter-spacing:-.04em}.goalBig span{font-size:15px;color:var(--tx2);font-family:var(--uifont);letter-spacing:0;margin-left:6px}
 .goalBar{height:10px;border-radius:99px;background:var(--s2);overflow:hidden;margin:8px 0}.goalBar i{display:block;height:100%;background:var(--acc);border-radius:99px}
 .goalSet{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--tx2)}.goalSet input{width:70px}
@@ -1284,6 +1291,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
 <div id="stage">
   <div id="mapBox" class="leaflet-container"><div id="map"></div></div>
+  <div id="cdown" style="display:none"><b id="cdNum">3</b><span id="cdTxt"></span></div>
   <div id="noMap">Diese Strecke hat keine Kartendaten (alter Import ohne Koordinaten).<br>Bitte die GPX-Datei einfach neu importieren.</div>
   <div class="hud">
     <div class="m big" id="hPbox"><div class="l" id="hPl">Leistung (3s)</div><div class="v"><span id="hP">0</span><span class="u">W</span></div></div>
@@ -1301,6 +1309,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     </div>
   </div>
   <div class="m" id="wbox" style="display:none">
+    <div class="wcount" id="wCount"></div>
     <div class="wrow">
       <div class="wc"><div class="wl">Ziel</div><div class="tgt"><span id="wTgt">0</span><span class="u">W</span></div></div>
       <div class="wc wmain"><div class="rem"><span id="wNow">0</span><span class="u">W</span></div><div class="wpm" id="wPm"></div></div>
@@ -1308,6 +1317,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     </div>
     <div class="bar"><div id="wBar"></div></div>
     <div class="sub">Workout noch <span id="wTot">0:00</span> · <span id="wNext"></span></div>
+    <div class="sub wlast" id="wLast"></div>
     <div class="sub" id="wBias"></div>
   </div>
   <div class="hud right">
@@ -1375,7 +1385,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.2</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 6.3</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1450,7 +1460,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <div class="overlay" id="dashDlg" style="display:none">
     <div class="card menu dash">
       <div class="mhead"><h2>Dashboard</h2><div class="spacer" style="flex:1"></div><button class="primary" id="dashClose" title="Zum Fahrt-Menü: Strecke und Workout wählen">Kurbeln</button></div>
-      <section class="dCard dCoach"><h3>Heute empfohlen <span class="i" data-tip="Der Coach schaut auf deine letzten Fahrten: Wie frisch bist du (Form), wann warst du zuletzt hart unterwegs, wie viel bist du diese Woche gefahren und was steht im Plan. Daraus schlägt er 2–3 passende Einheiten vor.">i</span></h3><p class="sub" id="dCoachTxt"></p><div class="coachRow" id="dCoach"></div></section>
+      <section class="dCard dCoach"><h3>Heute empfohlen <span class="i" data-tip="Der Coach schaut auf deine letzten Fahrten: Wie frisch bist du (Form), wann warst du zuletzt hart unterwegs, wie viel bist du diese Woche gefahren und was steht im Plan. Daraus schlägt er 2–3 passende Einheiten vor.">i</span></h3><div class="coachTop"><div id="dReady"></div><p class="sub" id="dCoachTxt"></p></div><div class="coachRow" id="dCoach"></div></section>
       <div class="dTiles" id="dTiles"></div>
       <div class="dGrid2">
         <section class="dCard"><h3>Wochenziel <span class="i" data-tip="Wie viele Stunden willst du pro Woche fahren? Die Woche beginnt am Montag. Zählt alle Fahrten in Kurbeln.">i</span></h3><div id="dGoal"></div></section>
@@ -1706,7 +1716,7 @@ if (!settings.pmV2) { settings.powerMatch = false; settings.pmV2 = 1; } // Stand
 if (!/^(ka_|gpx_|dirgpx_)/.test(settings.routeId)) settings.routeId = 'ka_turmberg';
 const strava = Object.assign({ clientId: '', secret: '', access: '', refresh: '', expires: 0, athlete: '', virtual: true, auto: false }, LS.get('kurbel.strava', {}));
 const saveStrava = () => LS.set('kurbel.strava', strava);
-const saveSettings = () => LS.set('kurbel.settings', settings);
+const saveSettings = () => { const h = settings.ftpHist ||= []; if (settings.ftp && (!h.length || h[h.length - 1][1] !== settings.ftp)) h.push([Date.now(), settings.ftp]); LS.set('kurbel.settings', settings); };
 if (!settings.darkV1) { settings.mapStyle = 'dark'; settings.darkV1 = 1; } // neues dunkles Design: dunkle Karte als Standard
 if (!['dark', 'esri', 'cyclosm', 'topo', 'sat'].includes(settings.mapStyle)) settings.mapStyle = 'dark'; // OSM- und CARTO-Server blocken lokal geöffnete Dateien
 
@@ -1869,14 +1879,14 @@ const wk = (id, cat, name, desc, segs) => ({ id, cat, name, desc, segs });
 // Kurzschrift: 10m@65 (10 min @ 65 % FTP), 30s@120, 10m@50-70 (Rampe), 3x[ … ] (Wiederholung), *@65 (füllt auf die Gesamtdauer auf), 20m@F (frei, ERG aus)
 const LIB_MAC = { WU: '4m@45-58 6m@58-68 1m@65 2m@84 2m@88 2m@92 2m@62', W2: '10m@45-68', CD: '5m@65-55 3m@50-40', C2: '5m@60-45' };
 function libParse(str) {
-  const tk = str.replace(/\[/g, ' [ ').replace(/\]/g, ' ] ').trim().split(/\s+/).flatMap(t => LIB_MAC[t] ? LIB_MAC[t].split(' ') : [t]);
+  const tk = str.replace(/\[/g, ' [ ').replace(/\]/g, ' ] ').trim().split(/\s+/).flatMap(t => LIB_MAC[t] ? LIB_MAC[t].split(' ').map(x => t === 'WU' || t === 'W2' ? x + '!w' : x) : [t]);
   let i = 0;
   const seq = () => {
     const out = [];
     while (i < tk.length && tk[i] !== ']') {
       const t = tk[i++]; let m;
       if ((m = t.match(/^(\d+)x$/))) { i++; const body = seq(); i++; for (let k = 0; k < +m[1]; k++) out.push(...body.map(s => Object.assign({}, s))); }
-      else if ((m = t.match(/^(\*|\d+)(m|s)?@(F|\d+)(?:-(\d+))?$/))) { const dur = m[1] === '*' ? null : +m[1] * (m[2] === 's' ? 1 : 60); out.push(m[3] === 'F' ? W(dur, 0, 0, { free: true }) : W(dur, m[3] / 100, (m[4] ?? m[3]) / 100)); }
+      else if ((m = t.match(/^(\*|\d+)(m|s)?@(F|\d+)(?:-(\d+))?(!w)?$/))) { const dur = m[1] === '*' ? null : +m[1] * (m[2] === 's' ? 1 : 60); out.push(m[3] === 'F' ? W(dur, 0, 0, { free: true }) : W(dur, m[3] / 100, (m[4] ?? m[3]) / 100, m[5] ? { wu: true } : {})); }
       else throw new Error('Workout-Kurzschrift: ' + t);
     }
     return out;
@@ -2105,16 +2115,16 @@ const BUILTIN_WORKOUTS = [
   wk('ss2x20', 'Tempo & Sweet Spot', 'Sweet Spot 2×20 min', '2× 20 min @ 90 %, 6 min Pause', [...WU, W(300, .6), ...reps(2, W(1200, .9), W(360, .55)), CD]),
   wk('ss_prog', 'Tempo & Sweet Spot', 'Sweet Spot progressiv 3×15', '3× 15 min, jeweils von 86 auf 94 % steigend', [...WU, W(300, .6), ...reps(3, W(900, .86, .94), W(300, .55)), CD]),
   // Schwelle
-  wk('thr3x12', 'Schwelle', 'Schwelle 3×12 min', '3× 12 min @ 100 %, 5 min Pause', [...WU, W(180, .95), W(240, .55), ...reps(3, W(720, 1), W(300, .55)), CD]),
-  wk('thr4x8', 'Schwelle', 'Schwelle 4×8 min', '4× 8 min @ 103 %, 4 min Pause', [...WU, W(180, .95), W(240, .55), ...reps(4, W(480, 1.03), W(240, .55)), CD]),
-  wk('thr2x20', 'Schwelle', 'Schwelle 2×20 min', 'Der Klassiker: 2× 20 min @ 97 %', [W(600, .45, .75), W(180, .95), W(240, .55), W(1200, .97), W(600, .55), W(1200, .97), W(480, .6, .4)]),
-  wk('thr1x30', 'Schwelle', 'Schwelle 1×30 min', '30 min am Stück @ 95 %', [...WU, W(180, .95), W(300, .55), W(1800, .95), CD]),
+  wk('thr3x12', 'Schwelle', 'Schwelle 3×12 min', '3× 12 min @ 100 %, 5 min Pause', [...WU, W(180, .95, .95, { wu: true }), W(240, .55), ...reps(3, W(720, 1), W(300, .55)), CD]),
+  wk('thr4x8', 'Schwelle', 'Schwelle 4×8 min', '4× 8 min @ 103 %, 4 min Pause', [...WU, W(180, .95, .95, { wu: true }), W(240, .55), ...reps(4, W(480, 1.03), W(240, .55)), CD]),
+  wk('thr2x20', 'Schwelle', 'Schwelle 2×20 min', 'Der Klassiker: 2× 20 min @ 97 %', [W(600, .45, .75), W(180, .95, .95, { wu: true }), W(240, .55), W(1200, .97), W(600, .55), W(1200, .97), W(480, .6, .4)]),
+  wk('thr1x30', 'Schwelle', 'Schwelle 1×30 min', '30 min am Stück @ 95 %', [...WU, W(180, .95, .95, { wu: true }), W(300, .55), W(1800, .95), CD]),
   wk('ou', 'Schwelle', 'Over-Unders 3×9 min', '3× (3× 2 min @ 95 % / 1 min @ 108 %) – lernt Laktat abzubauen', [...WU, W(300, .6), ...reps(3, reps(3, W(120, .95), W(60, 1.08)), W(300, .55)), CD]),
   // VO2max
-  wk('vo2', 'VO2max', 'VO2max 5×3 min', '5× 3 min @ 115 %, 3 min Pause', [W(720, .45, .75), W(120, .95), W(180, .55), ...reps(5, W(180, 1.15), W(180, .5)), CD]),
-  wk('vo2_6x2', 'VO2max', 'VO2max 6×2 min', '6× 2 min @ 120 %, 2 min Pause', [...WU, W(120, .95), W(180, .55), ...reps(6, W(120, 1.2), W(120, .5)), CD]),
-  wk('vo2_5x4', 'VO2max', 'VO2max 5×4 min', '5× 4 min @ 112 %, 4 min Pause', [...WU, W(120, .95), W(180, .55), ...reps(5, W(240, 1.12), W(240, .5)), CD]),
-  wk('vo2_4x5', 'VO2max', 'VO2max 4×5 min', '4× 5 min @ 108 %, 5 min Pause', [...WU, W(120, .95), W(180, .55), ...reps(4, W(300, 1.08), W(300, .5)), CD]),
+  wk('vo2', 'VO2max', 'VO2max 5×3 min', '5× 3 min @ 115 %, 3 min Pause', [W(720, .45, .75), W(120, .95, .95, { wu: true }), W(180, .55), ...reps(5, W(180, 1.15), W(180, .5)), CD]),
+  wk('vo2_6x2', 'VO2max', 'VO2max 6×2 min', '6× 2 min @ 120 %, 2 min Pause', [...WU, W(120, .95, .95, { wu: true }), W(180, .55), ...reps(6, W(120, 1.2), W(120, .5)), CD]),
+  wk('vo2_5x4', 'VO2max', 'VO2max 5×4 min', '5× 4 min @ 112 %, 4 min Pause', [...WU, W(120, .95, .95, { wu: true }), W(180, .55), ...reps(5, W(240, 1.12), W(240, .5)), CD]),
+  wk('vo2_4x5', 'VO2max', 'VO2max 4×5 min', '4× 5 min @ 108 %, 5 min Pause', [...WU, W(120, .95, .95, { wu: true }), W(180, .55), ...reps(4, W(300, 1.08), W(300, .5)), CD]),
   wk('vo2_pyr', 'VO2max', 'VO2max-Pyramide', '1-2-3-4-3-2-1 min @ 115 %, Pause = Intervall-Länge', [...WU, W(180, .55), ...[1, 2, 3, 4, 3, 2, 1].flatMap((m, i, a) => [W(m * 60, 1.15), ...(i < a.length - 1 ? [W(m * 60, .5)] : [])]), CD]),
   // HIT
   wk('ronn', 'HIT', 'Rønnestad 3×13×30/15', '3 Serien à 13× 30 s @ 120 % / 15 s @ 50 %', [...WU, W(300, .6), ...reps(3, reps(13, W(30, 1.2), W(15, .5)), W(180, .5)), CD]),
@@ -2149,6 +2159,30 @@ function segAt(wo, t) {
   let acc = 0;
   for (let i = 0; i < wo.segs.length; i++) { const s = wo.segs[i]; if (t < acc + s.dur) return { i, s, tIn: t - acc, rem: acc + s.dur - t, start: acc }; acc += s.dur; }
   return null;
+}
+// Harte Intervalle eines Workouts (für „Intervall 3 / 8“): Abschnitte nahe der Höchstleistung, angrenzende harte Teile zusammengefasst
+// (z. B. 1 min @ 120 % + 3 min @ 103 %); Aufwärm-Öffner (wu) zählen nicht; Serien = Gruppen mit ≥ 2 min Pause dazwischen
+function woIntervals(wo) {
+  if (wo._iv) return wo._iv;
+  const out = []; if (!wo.segs || wo.ramp || wo.manual) return (wo._iv = out);
+  const P = s => s.free ? 0 : Math.max(s.p0, s.p1) / (s.abs ? settings.ftp : 1);
+  const maxP = Math.max(0, ...wo.segs.filter(s => !s.wu).map(P)), hi = Math.max(.8, maxP * .9), lo = maxP * .85;
+  if (maxP < .8) return (wo._iv = out);
+  let t = 0, cur = null;
+  wo.segs.forEach((s, i) => {
+    const p = s.wu ? 0 : P(s);
+    if (p >= lo && (cur || p >= hi)) {
+      if (cur && p >= hi && cur.lastLo) { out.push(cur); cur = null; } // Over-Under: jedes neue „Über“ beginnt ein neues Intervall
+      if (!cur) cur = { start: t, i0: i, hard: false }; cur.end = t + s.dur; cur.i1 = i; if (p >= hi) cur.hard = true; cur.lastLo = p < hi;
+    }
+    else if (cur) { if (cur.hard) out.push(cur); cur = null; }
+    t += s.dur;
+  });
+  if (cur?.hard) out.push(cur);
+  let set = 0; out.forEach((iv, k) => { if (k && iv.start - out[k - 1].end >= 120) set++; iv.set = set; });
+  const nSets = set + 1; out.forEach(iv => { const ss = out.filter(x => x.set === iv.set); iv.nInSet = ss.length; iv.k = ss.indexOf(iv) + 1; });
+  out.nSets = nSets;
+  return (wo._iv = out);
 }
 const segWatts = (s, frac, ftp) => s.free ? null : (s.abs ? lerp(s.p0, s.p1, frac) : lerp(s.p0, s.p1, frac) * ftp);
 
@@ -2660,6 +2694,9 @@ function tick() {
       else {
         const tx = wo.texts || []; while (ride.textIdx < tx.length && tx[ride.textIdx].t <= t) { if (tx[ride.textIdx].t > t - 3) toast(tx[ride.textIdx].msg, 5000); ride.textIdx++; }
         const sa = segAt(wo, t);
+        { const IV = woIntervals(wo), ix = IV.findIndex(iv => t >= iv.start && t < iv.end), tg = currentTarget(); // Ø je Intervall
+          if (ix >= 0) { if (ride.ivAcc?.ix !== ix) ride.ivAcc = { ix, p: 0, g: 0, n: 0 }; ride.ivAcc.p += live.power * dt; ride.ivAcc.g += (tg || 0) * dt; ride.ivAcc.n += dt; }
+          else if (ride.ivAcc && ride.ivAcc.n > 0) { const a = ride.ivAcc; ride.lastIv = { ix: a.ix, avg: a.p / a.n, tgt: a.g / a.n }; ride.ivAcc = null; } }
         if (sa && sa.rem <= 3.05 && sa.i < wo.segs.length - 1) { const k = Math.ceil(sa.rem); if (k !== ride.beeped) { ride.beeped = k; beep(k <= 1 ? 1046 : 660, .12); } }
         else ride.beeped = -1;
       }
@@ -2790,6 +2827,7 @@ function updateHUD() {
   // Workout-Box
   const wo = (ride.state === 'running' || ride.state === 'paused') ? ride.workout : null;
   const box = $('#wbox');
+  $('#cdown').style.display = 'none';
   $('#hPbox').style.display = wo ? 'none' : '';
   if (!wo) { box.style.display = 'none'; return; }
   box.style.display = '';
@@ -2809,6 +2847,16 @@ function updateHUD() {
   $('#wBar').style.width = (sa.tIn / sa.s.dur * 100) + '%';
   $('#wRem').textContent = fmtT(sa.rem);
   $('#wTot').textContent = fmtT(woTotal(wo) - t);
+  { // Intervall x / y (bei Serien: Serie a/b · Intervall x/y), Countdown, Ø des letzten Intervalls
+    const IV = woIntervals(wo), ix = IV.findIndex(iv => t >= iv.start && t < iv.end), nx = IV.find(iv => iv.start >= t), cur = ix >= 0 ? IV[ix] : nx;
+    const lbl = iv => IV.nSets > 1 && iv.nInSet > 1 ? `Serie <b>${iv.set + 1}</b> / ${IV.nSets} · Intervall <b>${iv.k}</b> / ${iv.nInSet}` : `Intervall <b>${IV.indexOf(iv) + 1}</b> / ${IV.length}`;
+    $('#wCount').innerHTML = !IV.length ? '' : ix >= 0 ? lbl(cur) : nx ? (t < IV[0].start ? 'Aufwärmen · ' : '<span>Erholen · nächstes: </span>') + lbl(nx) : 'Ausfahren';
+    const L = ride.lastIv; $('#wLast').innerHTML = L && ix < 0 && L.tgt ? `Letztes Intervall: Ø ${Math.round(L.avg)} W <span style="color:var(--tx2)">· Ziel ${Math.round(L.tgt)} W</span>` : '';
+    const nxs = wo.segs[sa.i + 1], w0 = nxs && segWatts(nxs, 0, settings.ftp), cw = segWatts(sa.s, 1, settings.ftp);
+    const show = ride.state === 'running' && ride.started && nxs && sa.rem <= 3.05 && (w0 == null || cw == null || Math.abs(w0 - cw) > 15);
+    $('#cdown').style.display = show ? '' : 'none';
+    if (show) { $('#cdNum').textContent = Math.max(1, Math.ceil(sa.rem)); $('#cdTxt').textContent = 'Gleich: ' + fmtT(nxs.dur) + ' @ ' + (w0 == null ? 'frei' : Math.round(w0 * (1 + ride.bias / 100)) + ' W'); }
+  }
   const nx = wo.segs[sa.i + 1];
   if (nx) { const w0 = segWatts(nx, 0, settings.ftp), w1 = segWatts(nx, 1, settings.ftp); const f = x => Math.round(x * (1 + ride.bias / 100)); $('#wNext').textContent = 'Danach: ' + fmtT(nx.dur) + ' @ ' + (w0 == null ? 'frei' : (Math.round(w0) === Math.round(w1) ? f(w0) : f(w0) + '→' + f(w1)) + ' W'); }
   else $('#wNext').textContent = 'Letztes Intervall';
@@ -4087,6 +4135,28 @@ function barChart(el, data, o = {}) {
   el.querySelectorAll('.dHit').forEach(r => { r.onmousemove = e => tipShow(e, data[r.dataset.i].tip); r.onmouseleave = tipHide; });
 }
 const formLabel = t => t > 15 ? ['Sehr frisch', 'Gut erholt – ideal für Test oder Rennen. Länger so heißt aber: Fitness sinkt.'] : t > 5 ? ['Frisch', 'Erholt und bereit für harte Einheiten.'] : t > -10 ? ['Ausgeglichen', 'Gute Balance aus Training und Erholung.'] : t > -30 ? ['Im Aufbau', 'Du trainierst produktiv – auf ausreichend Schlaf und Erholungstage achten.'] : ['Sehr ermüdet', 'Hohes Risiko für Übertraining – ein paar lockere Tage einlegen.'];
+// Trend-Pfeil: ↑ / ↓ / → mit Wert
+const trend = (d, unit, digits = 0, eps = 0.05) => { const a = Math.abs(d), v = a.toFixed(digits).replace('.', ','); return `<span class="trend ${d > eps ? 'up' : d < -eps ? 'down' : ''}">${d > eps ? '↑' : d < -eps ? '↓' : '→'} ${d > eps ? '+' : d < -eps ? '−' : ''}${v}${unit}</span>`; };
+function ftpTrend() { // Veränderung der eingetragenen FTP gegenüber vor ~6 Wochen (bzw. dem ältesten bekannten Wert)
+  const h = settings.ftpHist || []; if (h.length < 2) return null;
+  const ref = h.filter(x => x[0] <= Date.now() - 42 * 864e5).pop() || h[0]; if (ref[1] === settings.ftp) return null;
+  return { d: settings.ftp - ref[1], since: new Date(ref[0]).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) };
+}
+// ---------- Bereitschaft (wie „Readiness“): aus Form, letzter harter Einheit und heutiger Fahrt ----------
+function readiness(rides, P) {
+  const last = P[P.length - 1] || { tsb: 0 }, now = Date.now(), day = 864e5, tsb = rides.length >= 3 ? last.tsb : 5;
+  rides.forEach(r => { if (!r._kind) r._kind = rideKind(r); });
+  const hard = rides.filter(r => r._kind === 'vo2' || r._kind === 'thr').map(r => r.start).sort((a, b) => b - a)[0], sinceHard = hard ? (now - hard) / day : 99;
+  const today = rides.some(r => new Date(r.start).toDateString() === new Date().toDateString());
+  let v = 72 + tsb * 1.4 - (sinceHard < 1.2 ? 15 : 0) - (today ? 30 : 0);
+  v = Math.round(clamp(v, 5, 98));
+  const [t, d] = v >= 75 ? ['Bereit', 'Gute Voraussetzungen für eine harte Einheit oder einen Test.'] : v >= 55 ? ['Gut', 'Passt für Sweet Spot, Schwelle oder eine längere Grundlage.'] : v >= 35 ? ['Etwas müde', 'Heute eher Grundlage – harte Intervalle lieber verschieben.'] : ['Erholen', 'Dein Körper braucht Pause oder nur ganz lockeres Kurbeln.'];
+  return { v, t, d };
+}
+function readyRing(r) {
+  const R = 46, C = 2 * Math.PI * R;
+  return `<div class="ready"><svg viewBox="0 0 110 110" width="110" height="110"><circle cx="55" cy="55" r="${R}" fill="none" stroke="var(--s2)" stroke-width="10"/><circle cx="55" cy="55" r="${R}" fill="none" stroke="var(--acc)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C * r.v / 100} ${C}" transform="rotate(-90 55 55)"/><text x="55" y="62" text-anchor="middle" fill="var(--tx)" font-size="28" font-family="JetBrains Mono, monospace">${r.v}</text></svg><div><small>Bereitschaft <span class="i" data-tip="Grober Tageswert aus deiner Form (Fitness − Ermüdung), ob gestern hart war und ob du heute schon gefahren bist. 75+ = bereit für Hartes, unter 35 = Erholung.">i</span></small><b>${r.t}</b><p>${r.d}</p></div></div>`;
+}
 // ---------- Wochenziel ----------
 const weekStart = t => { const x = new Date(t); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x.getTime(); };
 function renderGoal(rides) {
@@ -4094,9 +4164,11 @@ function renderGoal(rides) {
   const h = rs.reduce((a, r) => a + r.sum.timer, 0) / 3600, tss = rs.reduce((a, r) => a + r.sum.tss, 0), f = x => x.toFixed(1).replace('.', ',');
   const days = Array.from({ length: 7 }, (_, i) => rs.filter(r => r.start >= w0 + i * 864e5 && r.start < w0 + (i + 1) * 864e5).reduce((a, r) => a + r.sum.timer, 0) / 3600);
   const mx = Math.max(1.5, ...days), left = Math.max(0, g - h), dLeft = 7 - ((new Date().getDay() + 6) % 7);
+  const prev4 = rides.filter(r => r.start >= w0 - 28 * 864e5 && r.start < w0).reduce((a, r) => a + r.sum.timer, 0) / 3600 / 4;
   $('#dGoal').innerHTML = `<div class="goalBig">${f(h)} h<span>${g ? 'von ' + f(g) + ' h' : 'diese Woche'} · ${rs.length} ${rs.length === 1 ? 'Fahrt' : 'Fahrten'} · ${Math.round(tss)} TSS</span></div>
     ${g ? `<div class="goalBar"><i style="width:${Math.min(100, h / g * 100)}%"></i></div><p class="sub">${left <= 0 ? 'Wochenziel geschafft – stark!' : 'Noch ' + f(left) + ' h in ' + dLeft + (dLeft === 1 ? ' Tag' : ' Tagen') + (dLeft > 0 ? ' (≈ ' + Math.round(left / dLeft * 60) + ' min pro Tag)' : '') + '.'}</p>` : '<p class="sub">Setz dir ein Ziel – dann siehst du hier deinen Fortschritt.</p>'}
     <div class="goalDays">${days.map((d, i) => `<div><b><i style="height:${d / mx * 100}%"></i></b>${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][i]}</div>`).join('')}</div>
+    <p class="sub" style="margin:8px 0 0">Ø der 4 Wochen davor: ${f(prev4)} h${prev4 > 0 ? ' · diese Woche ' + trend(h - prev4, ' h', 1) : ''}</p>
     <div class="goalSet">Ziel <input type="number" id="goalIn" min="0" max="30" step="0.5" value="${g || ''}" placeholder="z. B. 5"> Stunden pro Woche</div>`;
   $('#goalIn').onchange = e => { settings.weekGoal = clamp(+e.target.value || 0, 0, 30); saveSettings(); renderGoal(rides); };
 }
@@ -4204,12 +4276,12 @@ async function openDash() {
   const est = ftpEstimate(rides, settings.ftp), P = pmc(rides), last = P[P.length - 1] || { ctl: 0, atl: 0, tsb: 0 }, [fl, ft] = formLabel(last.tsb);
   const wkg = v => (v / settings.weight).toFixed(2).replace('.', ',');
   const vo2 = vo2Series(rides);
-  renderCoach(rides, P); renderGoal(rides); calRides = rides; renderCal();
+  $('#dReady').innerHTML = readyRing(readiness(rides, P)); renderCoach(rides, P); renderGoal(rides); calRides = rides; renderCal();
   $('#dTiles').innerHTML = `
-    <div class="dTile"><small>FTP (eingetragen)</small><b>${settings.ftp}<span> W</span></b><em>${wkg(settings.ftp)} W/kg</em></div>
+    <div class="dTile"><small>FTP (eingetragen)</small><b>${settings.ftp}<span> W</span></b><em>${wkg(settings.ftp)} W/kg${ftpTrend() ? ' · ' + trend(ftpTrend().d, ' W') + ' seit ' + ftpTrend().since : ''}</em></div>
     <div class="dTile${est.ftp ? '' : ' muted'}"><small>FTP-Schätzung <span class="i" data-tip="${esc(est.how)}">i</span></small><b>${est.ftp ? est.ftp + '<span> W</span>' : '–'}</b><em>${est.ftp ? 'Zuverlässigkeit: ' + est.level : 'zu wenig Daten'}</em>${est.ftp && Math.abs(est.ftp - settings.ftp) >= 3 ? `<button class="dBtn" id="dUseFtp">${est.ftp} W übernehmen</button>` : ''}</div>
-    <div class="dTile"><small>Fitness <span class="i" data-tip="Chronische Trainingsbelastung (CTL): gleitender 42-Tage-Schnitt deiner TSS pro Tag. Steigt langsam, wenn du regelmäßig trainierst.">i</span></small><b>${Math.round(last.ctl)}</b><em>${P.length > 7 ? (last.ctl - P[P.length - 8].ctl >= 0 ? '+' : '') + (last.ctl - P[P.length - 8].ctl).toFixed(1) + ' in 7 Tagen' : ''}</em></div>
-    <div class="dTile${vo2.now ? '' : ' muted'}"><small>VO2max (Schätzung) <span class="i" data-tip="Aus deiner besten 5-Minuten-Leistung der letzten 6 Wochen und deinem Gewicht – Einheit ml/kg/min. Grober Richtwert, keine Labormessung.">i</span></small><b>${vo2.now ? vo2.now.toFixed(0) : '–'}</b><em>${vo2.now ? (vo2.d != null ? (vo2.d >= 0 ? '+' : '−') + Math.abs(vo2.d).toFixed(1).replace('.', ',') + ' in 6 Wochen' : 'ml/kg/min') : 'noch keine harten 5 min'}</em></div>
+    <div class="dTile"><small>Fitness <span class="i" data-tip="Chronische Trainingsbelastung (CTL): gleitender 42-Tage-Schnitt deiner TSS pro Tag. Steigt langsam, wenn du regelmäßig trainierst.">i</span></small><b>${Math.round(last.ctl)}</b><em>${P.length > 7 ? trend(last.ctl - P[P.length - 8].ctl, '', 1) + ' in 7 Tagen' : ''}</em></div>
+    <div class="dTile${vo2.now ? '' : ' muted'}"><small>VO2max (Schätzung) <span class="i" data-tip="Aus deiner besten 5-Minuten-Leistung der letzten 6 Wochen und deinem Gewicht – Einheit ml/kg/min. Grober Richtwert, keine Labormessung.">i</span></small><b>${vo2.now ? vo2.now.toFixed(0) : '–'}</b><em>${vo2.now ? (vo2.d != null ? trend(vo2.d, '', 1) + ' in 6 Wochen' : 'ml/kg/min') : 'noch keine harten 5 min'}</em></div>
     <div class="dTile"><small>Form <span class="i" data-tip="Form (TSB) = Fitness − Ermüdung. Negativ heißt: du bist im Aufbau. Positiv: frisch. Modell nach Banister/Coggan.">i</span></small><b>${last.tsb > 0 ? '+' : ''}${Math.round(last.tsb)}</b><em>${fl}</em></div>`;
   $('#dFormTxt').textContent = ft;
   $('#dEstTxt').textContent = est.how + (est.level === 'niedrig' ? ' – die Werte passen nicht ganz zusammen, daher nur grob.' : '') + (est.ftp && est.level !== 'hoch' ? ' Eine Schätzung ist nur so gut wie deine härtesten Abschnitte: Bist du dort nicht voll gefahren, liegt die echte FTP höher.' : '');

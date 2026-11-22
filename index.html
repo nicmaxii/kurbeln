@@ -92,6 +92,8 @@ header{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(-
 #map.rot{transform-origin:50% 50%}#map.rot .leaflet-tooltip{rotate:var(--unrot,0deg)}
 .hud,#wbox,#controls,#toast,#mapTools{z-index:1100}
 .overlay{z-index:1200!important}
+#toast{position:fixed;z-index:4000;background:var(--s2)!important;border:1px solid var(--ln)!important;color:var(--tx);max-width:min(640px,92vw);text-align:center}
+body:has(.overlay[style*="flex"]) #toast{top:auto;bottom:110px}
 #sv{position:absolute;top:0;right:0;bottom:0;width:50%;display:none;background:#111;z-index:2;border-left:2px solid #000}
 #stage.svOn #mapBox{right:50%}
 #stage.svOn #sv{display:block}
@@ -1372,7 +1374,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.8</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 5.9</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2527,7 +2529,7 @@ const avgHist = h => h.length ? h.reduce((a, x) => a + x[1], 0) / h.length : 0;
 let wakeLock = null;
 
 function startRide() {
-  if (!trainer) { toast('Bitte zuerst oben unter „Connections“ den Trainer verbinden oder die Demo starten.', 4500); return; }
+  if (!trainer) { toast('Noch kein Trainer verbunden – bitte oben unter „Connections“ den Trainer verbinden (oder die Demo starten).', 6000); setTimeout(() => { connDD.classList.add('open'); $('#btnConn').setAttribute('aria-expanded', true); updConnServices(); }, 0); return; }
   readSetup();
   Object.assign(ride, { state: 'running', started: false, elapsed: 0, distance: 0, v: 0, heading: 0, samples: [], lastSec: -1, bias: dayBias(), wSkip: 0, lastSent: {}, startTs: Date.now(), route, workout: workoutById(settings.workoutId), woDone: false, finished: false, textIdx: 0, poiIdx: 0, lap: 0, lastSave: 0, beeped: -1, tgt: [] });
   stopArmed = 0;

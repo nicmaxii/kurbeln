@@ -465,6 +465,26 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
   #stage.svOn #sv{top:50%;width:100%;border-left:0;border-top:2px solid #000}
   #stage.svOn #mapTools{right:8px;bottom:auto}
 }
+/* ---------- Handy während der Fahrt (hoch und quer) ---------- */
+@media (max-width:760px),(max-height:500px){
+  body.riding #btnDash,body.riding #btnPlan,body.riding #btnHist,body.riding #sMode,body.riding #btnPip{display:none!important}
+  body.riding #mapTools{display:none!important}
+  #mapBox .leaflet-control-zoom{display:none}
+}
+@media (max-height:500px){ /* Handy quer: alles kompakter, Fußleiste flach */
+  header{padding:4px 8px!important;gap:5px!important}header button{padding:4px 10px!important;font-size:12.5px!important}header .spacer{display:none!important}
+  footer{height:64px}
+  .upList{display:none!important}.hasUp #wbox .wsubInfo{display:block!important}
+  .hud{top:6px;left:6px;gap:5px}.hud.right{right:6px}.row2{gap:5px}
+  .m{min-width:0;padding:3px 8px}.m .v{font-size:19px}.m .l{font-size:10px!important}
+  .hud:not(.right)>.row2:nth-child(3),.hud.right>.row2:nth-child(2),#placeBox,#ghostBox{display:none!important}
+  #wbox{top:6px!important;bottom:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;min-width:0;padding:4px 14px 6px;zoom:1!important}
+  #wbox .wcount{font-size:12px}#wbox .wrow{gap:16px}#wbox .rem{font-size:40px}#wbox .tgt{font-size:22px}#wbox .wl{font-size:9.5px}#wbox .sub{font-size:11px}#wbox .bar{margin:3px 0}
+  #stage .hud{zoom:1!important}
+  #controls{bottom:6px;left:50%;right:auto;transform:translateX(-50%)}#controls button{padding:5px 10px!important;font-size:12.5px!important}
+  #cdown{top:50%;padding:8px 22px}#cdown b{font-size:64px}
+  #toast{bottom:60px!important;top:auto!important}
+}
 /* ---------- Einführung ---------- */
 #tour{position:fixed;inset:0;z-index:7000;pointer-events:auto}
 #tour .ring{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.42);transition:all .3s ease;pointer-events:none}
@@ -1398,7 +1418,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.3</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.4</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>

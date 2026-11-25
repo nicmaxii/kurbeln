@@ -76,9 +76,9 @@ header{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(-
 @media (max-width:760px){.hrow{grid-template-columns:1fr auto}.hrow .n{display:none}}
 .vrec{display:flex;gap:8px;align-items:center;margin-top:6px}.vrec button:first-child{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis}
 #stage.view-data #dash{display:grid}
-#stage.view-data .hud,#stage.view-data #wbox,#stage.view-data #mapTools,#stage.view-data #sv{display:none!important}
+#stage.view-data .hud,#stage.view-data #wbox,#stage.view-data #mapTools,#stage.view-data #sv,#stage.view-data #v3d{display:none!important}
 #stage.view-video #vid{display:block}
-#stage.view-video #mapTools,#stage.view-video #sv{display:none!important}
+#stage.view-video #mapTools,#stage.view-video #sv,#stage.view-video #v3d{display:none!important}
 #stage.view-video.hasVid #vidBar{display:flex}
 #stage.hudOff .hud,#stage.hudOff #wbox{display:none!important}
 #stage.view-video .m{background:var(--hud)}
@@ -95,9 +95,12 @@ header{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(-
 #toast{position:fixed;z-index:4000;background:var(--s2)!important;border:1px solid var(--ln)!important;color:var(--tx);max-width:min(640px,92vw);text-align:center}
 body:has(.overlay[style*="flex"]) #toast{top:auto;bottom:110px}
 #sv{position:absolute;top:0;right:0;bottom:0;width:50%;display:none;background:#111;z-index:2;border-left:2px solid #000}
-#stage.svOn #mapBox{right:50%}
-#stage.svOn #sv{display:block}
-#stage.svOn #mapTools{right:calc(50% + 12px);bottom:90px}
+#v3d{position:absolute;top:0;right:0;bottom:0;width:50%;display:none;background:var(--s0);z-index:2;border-left:2px solid #000}#v3d .maplibregl-ctrl-attrib{font-size:10px}
+#v3Msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--tx2);text-align:center;padding:20px;pointer-events:none}
+#stage.svOn #mapBox,#stage.v3On #mapBox{right:50%}
+#stage.svOn #sv,#stage.v3On #v3d{display:block}
+#stage.svOn #mapTools,#stage.v3On #mapTools{right:calc(50% + 12px);bottom:90px}
+#stage.v3On #controls{left:25%;flex-wrap:wrap;justify-content:center;max-width:calc(50% - 24px)}
 #stage.svOn #controls{left:25%;flex-wrap:wrap;justify-content:center;max-width:calc(50% - 24px)}
 #svPano{position:absolute;inset:0}
 #svMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aab4c0;text-align:center;padding:40px;pointer-events:none;font-size:14px;z-index:3}
@@ -464,9 +467,9 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
   body:has(#setup[style*="flex"]) footer{display:none}
 }
 @media (max-width:760px) and (orientation:portrait){
-  #stage.svOn #mapBox{right:0;bottom:50%}
-  #stage.svOn #sv{top:50%;width:100%;border-left:0;border-top:2px solid #000}
-  #stage.svOn #mapTools{right:8px;bottom:auto}
+  #stage.svOn #mapBox,#stage.v3On #mapBox{right:0;bottom:50%}
+  #stage.svOn #sv,#stage.v3On #v3d{top:50%;width:100%;border-left:0;border-top:2px solid #000}
+  #stage.svOn #mapTools,#stage.v3On #mapTools{right:8px;bottom:auto}
 }
 /* ---------- Handy während der Fahrt (hoch und quer) ---------- */
 @media (max-width:760px),(max-height:500px){
@@ -1372,7 +1375,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div class="m" id="placeBox" style="display:none"><div class="l">Ort</div><div class="pv" id="hOrt">–</div><div class="gsub" id="hOrtN"></div></div>
   </div>
   <div id="sv"><div id="svPano"></div><div id="svMsg">Street View wird geladen …</div><div id="svInfo"></div></div>
+  <div id="v3d"><div id="v3Map" style="position:absolute;inset:0"></div><div id="v3Msg">3D-Ansicht wird geladen …</div></div>
   <div id="mapTools">
+    <button id="btn3D" title="3D-Satellitenflug neben der Karte ein-/ausblenden – kostenlos, ohne Schlüssel">3D</button>
     <button id="btnSV" title="Google Street View neben der Karte ein-/ausblenden">Street View</button>
     <button id="btnFollow" style="display:none">◎ Karte folgen</button>
     <div class="hudSize"><button id="btnHudS" title="Werte kleiner" aria-label="Werte kleiner">A−</button><button id="btnHudL" title="Werte größer" aria-label="Werte größer">A+</button></div>
@@ -1421,7 +1426,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.7</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.8</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -3181,7 +3186,64 @@ async function svUpdate(force) {
     else svMsg('Street View: ' + (e?.message || e));
   } finally { sv.busy = false; }
 }
+// ---------- 3D-Satellitenflug (MapLibre, Esri-Satellit + AWS-Höhen, ohne Schlüssel) als Splitscreen wie Street View ----------
+const v3 = { on: false, map: null, loading: null, bear: null, routeId: null, raf: 0 };
+function v3Load() {
+  if (window.maplibregl) return Promise.resolve();
+  if (v3.loading) return v3.loading;
+  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'; document.head.appendChild(css);
+  return (v3.loading = new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'; sc.onload = res; sc.onerror = () => { v3.loading = null; rej(new Error('3D-Bibliothek konnte nicht geladen werden')); }; document.head.appendChild(sc); }));
+}
+const v3Pos = d => { const ll = latLonAt(route, d); return [ll[1], ll[0]]; };
+function v3Route() {
+  if (!v3.map || !route.lat || v3.routeId === route.id) return;
+  const c = []; for (let i = 0; i < route.lat.length; i += 4) c.push([route.lon[i], route.lat[i]]);
+  const gj = { type: 'Feature', geometry: { type: 'LineString', coordinates: c } }, src = v3.map.getSource('route');
+  if (src) src.setData(gj); else {
+    v3.map.addSource('route', { type: 'geojson', data: gj });
+    v3.map.addLayer({ id: 'route-glow', type: 'line', source: 'route', paint: { 'line-color': '#edff9a', 'line-width': 10, 'line-opacity': 0.18, 'line-blur': 4 } });
+    v3.map.addLayer({ id: 'route', type: 'line', source: 'route', paint: { 'line-color': '#edff9a', 'line-width': 3.5 } });
+    v3.map.addSource('me', { type: 'geojson', data: { type: 'Point', coordinates: c[0] } });
+    v3.map.addLayer({ id: 'me', type: 'circle', source: 'me', paint: { 'circle-radius': 7, 'circle-color': '#edff9a', 'circle-stroke-width': 3, 'circle-stroke-color': '#0c0c0d' } });
+  }
+  v3.routeId = route.id; v3.bear = null;
+}
+function v3Frame() {
+  if (!v3.on) return;
+  v3.raf = requestAnimationFrame(v3Frame);
+  if (!v3.map || !v3.map.isStyleLoaded() || !route.lat) return;
+  if ($('#v3Msg').textContent) $('#v3Msg').textContent = '';
+  v3Route();
+  const run = ride.state === 'running', d = Math.max(0, (run || ride.state === 'paused' ? ride.distance : 0) + (run ? ride.v * Math.min(0.3, (performance.now() - lastTickWall) / 1000) : 0));
+  const p = v3Pos(d), a = v3Pos(route.loop ? d + 250 : Math.min(route.len, d + 250)), r = Math.PI / 180;
+  const b = Math.atan2((a[0] - p[0]) * Math.cos(p[1] * r), a[1] - p[1]) / r;
+  if (v3.bear == null) v3.bear = b; else v3.bear += (((b - v3.bear + 540) % 360) - 180) * 0.03;
+  v3.map.jumpTo({ center: p, bearing: v3.bear, pitch: 68, zoom: 15 });
+  v3.map.getSource('me')?.setData({ type: 'Point', coordinates: p });
+}
+async function set3D(on) {
+  if (on && settings.svOn) setSV(false);
+  v3.on = on; $('#stage').classList.toggle('v3On', on); $('#btn3D').textContent = on ? '3D aus' : '3D';
+  if (map) setTimeout(() => { map.invalidateSize(); if ((ride.state === 'running' || ride.state === 'paused') && follow && route.lat) map.panTo(latLonAt(route, ride.distance), { animate: false }); }, 50);
+  cancelAnimationFrame(v3.raf);
+  if (!on) return;
+  if (!route.lat) { $('#v3Msg').textContent = 'Diese Strecke hat keine Karte – 3D gibt es nur für Strecken mit GPS.'; return; }
+  $('#v3Msg').textContent = '3D-Ansicht wird geladen …';
+  try { await v3Load(); } catch (e) { $('#v3Msg').textContent = e.message; return; }
+  if (!v3.map) {
+    v3.map = new maplibregl.Map({ container: 'v3Map', attributionControl: { compact: true }, interactive: false, pitch: 68, zoom: 15, center: v3Pos(0), maxPitch: 85,
+      style: { version: 8, sources: {
+        sat: { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, maxzoom: 18, attribution: 'Bilder © Esri, Maxar, Earthstar Geographics' },
+        dem: { type: 'raster-dem', tiles: ['https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png'], encoding: 'terrarium', tileSize: 256, maxzoom: 14, attribution: 'Höhen: Mapzen/AWS' } },
+        layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#0c0c0d' } }, { id: 'sat', type: 'raster', source: 'sat', paint: { 'raster-saturation': -0.25, 'raster-brightness-max': 0.85, 'raster-contrast': 0.1 } }],
+        terrain: { source: 'dem', exaggeration: 1.25 }, sky: { 'sky-color': '#1b1d22', 'horizon-color': '#3a3d44', 'fog-color': '#0c0c0d', 'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.5, 'fog-ground-blend': 0.4 } } });
+    v3.map.on('load', () => { $('#v3Msg').textContent = ''; v3.routeId = null; });
+  } else { $('#v3Msg').textContent = ''; setTimeout(() => v3.map.resize(), 60); }
+  v3Frame();
+}
+$('#btn3D').onclick = () => set3D(!v3.on);
 function setSV(on) {
+  if (on && v3.on) set3D(false);
   settings.svOn = on; saveSettings(); $('#cSV').checked = on;
   $('#stage').classList.toggle('svOn', on);
   $('#btnSV').textContent = on ? 'Street View aus' : 'Street View';

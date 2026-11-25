@@ -396,6 +396,9 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 .wname{font-weight:900;font-size:15px;line-height:1.2;color:var(--tx)}
 .wmeta{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--tx2);flex-wrap:wrap}
 .lvl{display:inline-flex;gap:2px}.lvl i{width:6px;height:10px;border-radius:2px;background:var(--cc,var(--acc))}.lvl i.o{background:var(--ln)}
+.stList{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:10px;max-height:58vh;overflow:auto}
+.stCard{display:flex!important;flex-direction:column;align-items:stretch!important;gap:4px;text-align:left;background:var(--s1)!important;border:1px solid var(--ln)!important;border-radius:14px!important;padding:10px 12px!important;cursor:pointer;color:var(--tx);white-space:normal!important;height:auto!important}.stCard:hover{border-color:var(--tx2)}
+.stCard svg{width:100%;height:90px;display:block}.stCard b{font-size:14px;font-weight:600;line-height:1.25}.stCard small{font-size:12px;color:var(--tx2);font-family:var(--numfont)}
 .wdet{position:absolute;right:8px;bottom:8px;font-size:12px;color:var(--tx2);border:1px solid var(--ln);border-radius:999px;padding:2px 9px;background:var(--s1)}.wdet:hover{color:var(--tx);border-color:var(--tx2)}
 #woView{z-index:3000}.wvStats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}.wvStats div{background:var(--s1);border-radius:12px;padding:8px 10px}.wvStats small{display:block;font-size:12px;color:var(--tx2)}.wvStats b{font-family:var(--numfont);font-size:20px;color:var(--tx);font-weight:500}
 .wvSteps{display:flex;flex-direction:column;gap:4px;max-height:34vh;overflow:auto}.wvStep{display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;background:var(--s1);border-left:4px solid var(--z);border-radius:8px;padding:7px 10px;font-size:14px;color:var(--tx)}.wvStep span{color:var(--tx2);font-family:var(--numfont);font-size:13px}.wvStep em{font-style:normal;color:var(--tx2);font-size:13px}
@@ -1418,7 +1421,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.4</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.5</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1642,6 +1645,16 @@ svg.leaflet-image-layer.leaflet-interactive path {
   </div>
 
   <!-- Workout-Editor -->
+  <div class="overlay" id="stImp" style="display:none">
+    <div class="card menu" style="width:min(1000px,100%)">
+      <div class="mhead"><h2>Strecke aus Strava</h2></div>
+      <p class="sub">Wähle eine deiner Ausfahrten – Kurbeln übernimmt Verlauf und Höhenprofil als Strecke (landet unter „Eigene“).</p>
+      <div class="inline" style="margin-top:8px;gap:8px;flex-wrap:wrap"><input type="text" id="stQ" placeholder="Suchen, z. B. Rottenburg" style="flex:1;min-width:200px"><div class="subcats" id="stF" style="margin:0"></div></div>
+      <div id="stMsg" class="hint" style="margin-top:8px"></div>
+      <div id="stList" class="stList"></div>
+      <div class="actions"><button id="stMore" style="display:none">Ältere laden</button><button id="stClose">Schließen</button></div>
+    </div>
+  </div>
   <div class="overlay" id="woView" style="display:none">
     <div class="card menu" style="width:min(820px,100%)">
       <div class="mhead"><h2 id="wvName"></h2></div>
@@ -4060,12 +4073,13 @@ function renderRouteCards() {
       <div class="rname">${esc(shortName(r.name))}</div>
       <div class="rstats"><span><b>${(r.len / 1000).toFixed(1).replace('.', ',')}</b> km</span><span><b>${Math.round(r.ascent)}</b> Hm</span></div>
       <div class="rtags">${routeTags(r)}</div>${r.imported ? '<span class="rdel" data-del="1" title="Strecke entfernen">✕</span>' : ''}</button>`).join('') +
-    (settings.rtTab === 'own' ? `<button class="rcard add" data-addgpx><div class="addIcon">＋</div><div class="rname">Eigene Strecke</div><div class="sub">GPX-Datei, z. B. von komoot – oder einfach ins Fenster ziehen</div></button>` : '');
+    (settings.rtTab === 'own' ? `<button class="rcard add" data-addgpx><div class="addIcon">＋</div><div class="rname">Eigene Strecke</div><div class="sub">GPX-Datei, z. B. von komoot – oder einfach ins Fenster ziehen</div></button><button class="rcard add" data-addstrava><div class="addIcon">＋</div><div class="rname">Aus Strava</div><div class="sub">Eine deiner Strava-Ausfahrten als Strecke übernehmen</div></button>` : '');
   box.querySelectorAll('[data-route]').forEach(b => b.onclick = e => {
     $('#selRoute').value = b.dataset.route; refreshSetupInfo(); renderRouteCards();
     if (e.target.dataset.del) $('#btnDelRoute').click();
   });
   box.querySelector('[data-addgpx]')?.addEventListener('click', () => $('#btnGpx').click());
+  box.querySelector('[data-addstrava]')?.addEventListener('click', () => openStravaImport());
   box.querySelector('.rcard.on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 function pickWorkout(id, cat) {
@@ -4673,6 +4687,66 @@ function toZWO(wo) {
   return `<workout_file>\n  <author>Kurbeln</author>\n  <name>${esc(wo.name)}</name>\n  <description>${esc(wo.desc || '')}</description>\n  <sportType>bike</sportType>\n  <tags/>\n  <workout>\n    ${lines.join('\n    ')}\n  </workout>\n</workout_file>\n`;
 }
 const safeName = n => n.replace(/[\\/:*?"<>|]+/g, '-').trim().slice(0, 80) || 'Workout';
+// ---------- Strecken aus Strava-Aktivitäten ----------
+const ST_PLACES = [['Alle', null], ['Tübingen', [48.52, 9.056]], ['Karlsruhe', [49.009, 8.404]], ['Berlin', [52.52, 13.405]]];
+const stImp = { acts: [], page: 0, f: 'Alle' };
+function polyDecode(str) { const pts = []; let i = 0, la = 0, lo = 0; while (i < str.length) { for (const k of [0, 1]) { let b, sh = 0, r = 0; do { b = str.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while (b >= 32); const d = r & 1 ? ~(r >> 1) : r >> 1; if (k) lo += d; else la += d; } pts.push([la / 1e5, lo / 1e5]); } return pts; }
+function polySvg(pts) {
+  if (pts.length < 2) return '';
+  const la = pts.map(p => p[0]), lo = pts.map(p => p[1]), c = Math.cos(la[0] * Math.PI / 180), x0 = Math.min(...lo), x1 = Math.max(...lo), y0 = Math.min(...la), y1 = Math.max(...la);
+  const w = (x1 - x0) * c || 1e-6, h = y1 - y0 || 1e-6, sc = Math.min(200 / w, 80 / h), ox = (220 - w * sc) / 2, oy = (90 - h * sc) / 2;
+  return `<svg viewBox="0 0 220 90"><path d="${pts.map((p, i) => (i ? 'L' : 'M') + (ox + (p[1] - x0) * c * sc).toFixed(1) + ' ' + (oy + (y1 - p[0]) * sc).toFixed(1)).join('')}" fill="none" stroke="var(--acc)" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+}
+async function stravaGet(path) {
+  const tok = await stravaAccess(), r = await fetch('https://www.strava.com/api/v3/' + path, { headers: { Authorization: 'Bearer ' + tok } });
+  if (r.status === 401 || r.status === 403) { const e = new Error('Leserecht fehlt'); e.scope = true; throw e; }
+  if (!r.ok) throw new Error('Strava antwortet mit ' + r.status);
+  return r.json();
+}
+async function openStravaImport() {
+  $('#setup').style.display = 'none'; $('#stImp').style.display = 'flex';
+  if (!strava.refresh) { $('#stMsg').innerHTML = 'Noch nicht mit Strava verbunden – oben unter „Connections“ → Strava einrichten.'; $('#stList').innerHTML = ''; return; }
+  if (!stImp.acts.length) await stLoad();
+  stRender();
+}
+async function stLoad() {
+  $('#stMsg').textContent = 'Lade deine Strava-Ausfahrten …';
+  try {
+    const a = await stravaGet(`athlete/activities?per_page=100&page=${++stImp.page}`);
+    stImp.acts.push(...a.filter(x => /Ride/.test(x.sport_type || x.type) && !/Virtual/.test(x.sport_type || x.type) && x.map?.summary_polyline));
+    $('#stMore').style.display = a.length === 100 ? '' : 'none'; $('#stMsg').textContent = '';
+  } catch (e) {
+    stImp.page--;
+    $('#stMsg').innerHTML = e.scope ? 'Kurbeln darf deine Aktivitäten noch nicht lesen. Bitte Strava einmal neu verbinden und dabei „Aktivitäten ansehen“ erlauben. <button class="primary" id="stRe" style="margin-left:8px">Strava neu verbinden</button>' : esc(e.message);
+    $('#stRe')?.addEventListener('click', () => { $('#stImp').style.display = 'none'; stravaForce = true; openStrava(); toast('Jetzt auf „Mit Strava verbinden“ drücken und Aktivitäten-Lesen erlauben.', 6000); });
+  }
+}
+function stRender() {
+  $('#stF').innerHTML = ST_PLACES.map(([n]) => `<button class="${n === stImp.f ? 'on' : ''}" data-f="${n}">${n}</button>`).join('');
+  $('#stF').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { stImp.f = b.dataset.f; stRender(); });
+  const q = $('#stQ').value.trim().toLowerCase(), ctr = ST_PLACES.find(p => p[0] === stImp.f)?.[1];
+  const list = stImp.acts.filter(a => (!q || a.name.toLowerCase().includes(q)) && (!ctr || (a.start_latlng?.length && havD({ lat: a.start_latlng[0], lon: a.start_latlng[1] }, { lat: ctr[0], lon: ctr[1] }) < 30000)));
+  $('#stList').innerHTML = list.map(a => `<button class="stCard" data-act="${a.id}">${polySvg(polyDecode(a.map.summary_polyline))}<b>${esc(a.name)}</b><small>${new Date(a.start_date).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })} · ${(a.distance / 1000).toFixed(1).replace('.', ',')} km · ${Math.round(a.total_elevation_gain || 0)} Hm</small></button>`).join('') || (stImp.acts.length ? '<div class="hint">Keine passende Ausfahrt – evtl. „Ältere laden“.</div>' : '');
+  $('#stList').querySelectorAll('[data-act]').forEach(b => b.onclick = () => stImport(stImp.acts.find(a => String(a.id) === b.dataset.act)));
+}
+async function stImport(a) {
+  $('#stMsg').textContent = 'Übernehme „' + a.name + '“ …';
+  try {
+    const st = await stravaGet(`activities/${a.id}/streams?keys=latlng,altitude&key_by_type=true`);
+    const ll = st.latlng?.data || [], al = st.altitude?.data || [];
+    if (ll.length < 10) throw new Error('Diese Fahrt hat keine GPS-Daten');
+    const P = ll.map((p, i) => ({ lat: p[0], lon: p[1], ele: al[i] ?? NaN })).filter((p, i, arr) => !i || havD(arr[i - 1], p) > 2);
+    const r = routeFromPoints(P, { id: 'strava_' + a.id, name: a.name, appendKm: true, imported: true });
+    importedRoutes = importedRoutes.filter(x => x.id !== r.id); importedRoutes.push(r);
+    if (!LS.set('kurbel.routes', serRoutes())) toast('Strecke zu groß zum dauerhaften Speichern – nur für diese Sitzung', 5000);
+    settings.routeId = r.id; route = r; settings.rtTab = 'own'; saveSettings();
+    $('#stImp').style.display = 'none'; fillSelects(); $('#selRoute').value = r.id; refreshSetupInfo(); $('#setup').style.display = 'flex';
+    toast('„' + a.name + '“ ist jetzt eine Strecke (' + (r.len / 1000).toFixed(1).replace('.', ',') + ' km).', 4000);
+  } catch (e) { $('#stMsg').textContent = 'Ging nicht: ' + (e.scope ? 'Leserecht fehlt – Strava neu verbinden.' : e.message); }
+}
+$('#stQ').addEventListener('input', stRender);
+$('#stMore').onclick = async () => { await stLoad(); stRender(); };
+$('#stClose').onclick = () => { $('#stImp').style.display = 'none'; $('#setup').style.display = 'flex'; };
 // ---------- Workout ansehen ----------
 woHover($('#wpreview'), () => workoutById(settings.workoutId)); woHover($('#wvChart'), () => workoutById(woViewId)); woHover($('#epreview'), () => edWorkout());
 const woOwn = wo => wo && (wo.id.startsWith('imp_') || wo.id.startsWith('dir_'));
@@ -4845,11 +4919,12 @@ $('#sClip').onclick = async () => {
 };
 $('#sPaste').addEventListener('paste', () => setTimeout(() => { if (/code=|error=/.test($('#sPaste').value)) stravaConnectFrom($('#sPaste').value); }, 50));
 window.addEventListener('focus', () => { if (stravaWaiting && $('#stravaDlg').style.display !== 'none') { $('#sPasteBox').scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('Jetzt die Adresse aus dem localhost-Tab hier einfügen (Button „Aus Zwischenablage einfügen“ oder ⌘V).', 6000); } });
+let stravaForce = false; // true = Strava fragt die Rechte neu ab (z. B. fürs Lesen der Aktivitäten)
 $('#sAuth').onclick = () => {
   stravaReadForm();
   if (!/^\d+$/.test(strava.clientId) || strava.secret.length < 20) return toast('Bitte zuerst Client ID (Zahl) und Client Secret eintragen.', 4000);
   stravaWaiting = true;
-  window.open('https://www.strava.com/oauth/authorize?' + new URLSearchParams({ client_id: strava.clientId, response_type: 'code', redirect_uri: stravaRedirect(), approval_prompt: 'auto', scope: 'read,activity:write', state: 'kurbel' }), '_blank');
+  window.open('https://www.strava.com/oauth/authorize?' + new URLSearchParams({ client_id: strava.clientId, response_type: 'code', redirect_uri: stravaRedirect(), approval_prompt: stravaForce ? 'force' : 'auto', scope: 'read,activity:write,activity:read_all', state: 'kurbel' }), '_blank');
 };
 $('#sPasteGo').onclick = () => stravaConnectFrom($('#sPaste').value);
 ['#sVirtual', '#sAuto', '#sCid', '#sSec'].forEach(s => $(s).addEventListener('change', stravaReadForm));
@@ -5130,7 +5205,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   // hohle Tretlagerachse (hier geht's beim Zoomen hinein)
   const spindle = new THREE.Mesh(new THREE.LatheGeometry([new THREE.Vector2(0.17, 0.55), new THREE.Vector2(0.215, 0.55), new THREE.Vector2(0.215, -1.95), new THREE.Vector2(0.17, -1.95), new THREE.Vector2(0.17, 0.55)].reverse(), 64), silver);
   spindle.rotation.x = Math.PI / 2; rotor.add(spindle);
-  const glow = new THREE.Mesh(new THREE.CircleGeometry(0.17, 48), new THREE.MeshBasicMaterial({ color: 0xffffff })); glow.position.z = -1.9; rotor.add(glow);
+  const glow = new THREE.Mesh(new THREE.CircleGeometry(0.17, 48), new THREE.MeshBasicMaterial({ color: 0x0c0c0d })); glow.position.z = -1.9; // beim Hineinzoomen: schwarz statt weiß rotor.add(glow);
   if (CV === 'a') { // feiner Lime-Ring auf dem großen Kettenblatt und Streifen auf dem Kurbelarm
     const ring = new THREE.Mesh(new THREE.TorusGeometry(1.86, 0.022, 12, 160), lime); ring.position.z = 0.05; rotor.add(ring);
   }

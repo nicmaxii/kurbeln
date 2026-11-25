@@ -96,6 +96,8 @@ header{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(-
 body:has(.overlay[style*="flex"]) #toast{top:auto;bottom:110px}
 #sv{position:absolute;top:0;right:0;bottom:0;width:50%;display:none;background:#111;z-index:2;border-left:2px solid #000}
 #v3d{position:absolute;top:0;right:0;bottom:0;width:50%;display:none;background:var(--s0);z-index:2;border-left:2px solid #000}#v3d .maplibregl-ctrl-attrib{font-size:10px}
+#v3d.mono canvas{filter:url(#k3d)}
+#v3Col{position:absolute;left:12px;bottom:12px;z-index:3;font-size:12px!important;padding:5px 12px!important}
 #v3Msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--tx2);text-align:center;padding:20px;pointer-events:none}
 #stage.svOn #mapBox,#stage.v3On #mapBox{right:50%}
 #stage.svOn #sv,#stage.v3On #v3d{display:block}
@@ -1297,7 +1299,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <div class="lhint">Scrollen oder heranzoomen, um einzutauchen<span>⌄</span></div>
   <div id="lfade"></div>
 </div>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="kdark" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.77 0.76 0.749 0.739 0.729 0.719 0.708 0.698 0.688 0.678 0.668 0.657 0.647 0.637 0.627 0.616 0.606 0.596 0.586 0.576 0.565 0.555 0.545 0.535 0.524 0.514 0.504 0.494 0.484 0.473 0.463 0.453 0.443 0.432 0.422 0.412 0.402 0.392 0.381 0.371 0.361 0.351 0.34 0.33 0.17 0.164 0.157 0.151 0.144 0.138 0.131 0.125 0.118 0.112 0.105 0.099 0.093 0.086 0.08 0.073 0.15 0.31 0.47 0.55 0.55"/><feFuncG type="table" tableValues="0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.77 0.76 0.749 0.739 0.729 0.719 0.708 0.698 0.688 0.678 0.668 0.657 0.647 0.637 0.627 0.616 0.606 0.596 0.586 0.576 0.565 0.555 0.545 0.535 0.524 0.514 0.504 0.494 0.484 0.473 0.463 0.453 0.443 0.432 0.422 0.412 0.402 0.392 0.381 0.371 0.361 0.351 0.34 0.33 0.17 0.164 0.157 0.151 0.144 0.138 0.131 0.125 0.118 0.112 0.105 0.099 0.093 0.086 0.08 0.073 0.15 0.31 0.47 0.55 0.55"/><feFuncB type="table" tableValues="0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.77 0.76 0.749 0.739 0.729 0.719 0.708 0.698 0.688 0.678 0.668 0.657 0.647 0.637 0.627 0.616 0.606 0.596 0.586 0.576 0.565 0.555 0.545 0.535 0.524 0.514 0.504 0.494 0.484 0.473 0.463 0.453 0.443 0.432 0.422 0.412 0.402 0.392 0.381 0.371 0.361 0.351 0.34 0.33 0.17 0.164 0.157 0.151 0.144 0.138 0.131 0.125 0.118 0.112 0.105 0.099 0.093 0.086 0.08 0.073 0.15 0.31 0.47 0.55 0.55"/></feComponentTransfer></filter></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="k3d" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="0.05 0.2 0.52 0.8 0.97"/><feFuncG type="table" tableValues="0.05 0.2 0.53 0.88 1"/><feFuncB type="table" tableValues="0.05 0.21 0.5 0.5 0.84"/></feComponentTransfer></filter><filter id="kdark" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.77 0.76 0.749 0.739 0.729 0.719 0.708 0.698 0.688 0.678 0.668 0.657 0.647 0.637 0.627 0.616 0.606 0.596 0.586 0.576 0.565 0.555 0.545 0.535 0.524 0.514 0.504 0.494 0.484 0.473 0.463 0.453 0.443 0.432 0.422 0.412 0.402 0.392 0.381 0.371 0.361 0.351 0.34 0.33 0.17 0.164 0.157 0.151 0.144 0.138 0.131 0.125 0.118 0.112 0.105 0.099 0.093 0.086 0.08 0.073 0.15 0.31 0.47 0.55 0.55"/><feFuncG type="table" tableValues="0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.77 0.76 0.749 0.739 0.729 0.719 0.708 0.698 0.688 0.678 0.668 0.657 0.647 0.637 0.627 0.616 0.606 0.596 0.586 0.576 0.565 0.555 0.545 0.535 0.524 0.514 0.504 0.494 0.484 0.473 0.463 0.453 0.443 0.432 0.422 0.412 0.402 0.392 0.381 0.371 0.361 0.351 0.34 0.33 0.17 0.164 0.157 0.151 0.144 0.138 0.131 0.125 0.118 0.112 0.105 0.099 0.093 0.086 0.08 0.073 0.15 0.31 0.47 0.55 0.55"/><feFuncB type="table" tableValues="0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.78 0.77 0.76 0.749 0.739 0.729 0.719 0.708 0.698 0.688 0.678 0.668 0.657 0.647 0.637 0.627 0.616 0.606 0.596 0.586 0.576 0.565 0.555 0.545 0.535 0.524 0.514 0.504 0.494 0.484 0.473 0.463 0.453 0.443 0.432 0.422 0.412 0.402 0.392 0.381 0.371 0.361 0.351 0.34 0.33 0.17 0.164 0.157 0.151 0.144 0.138 0.131 0.125 0.118 0.112 0.105 0.099 0.093 0.086 0.08 0.073 0.15 0.31 0.47 0.55 0.55"/></feComponentTransfer></filter></svg>
 <div id="app">
 <header>
   <button id="btnHome" class="brand" title="Zur Startseite">kurbeln</button>
@@ -1375,7 +1377,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div class="m" id="placeBox" style="display:none"><div class="l">Ort</div><div class="pv" id="hOrt">–</div><div class="gsub" id="hOrtN"></div></div>
   </div>
   <div id="sv"><div id="svPano"></div><div id="svMsg">Street View wird geladen …</div><div id="svInfo"></div></div>
-  <div id="v3d"><div id="v3Map" style="position:absolute;inset:0"></div><div id="v3Msg">3D-Ansicht wird geladen …</div></div>
+  <div id="v3d" class="mono"><div id="v3Map" style="position:absolute;inset:0"></div><button id="v3Col" title="Satellitenbild in Kurbeln-Farben (Schwarz, Grau, Lime) oder in echten Farben">Echte Farben</button><div id="v3Msg">3D-Ansicht wird geladen …</div></div>
   <div id="mapTools">
     <button id="btn3D" title="3D-Satellitenflug neben der Karte ein-/ausblenden – kostenlos, ohne Schlüssel">3D</button>
     <button id="btnSV" title="Google Street View neben der Karte ein-/ausblenden">Street View</button>
@@ -1426,7 +1428,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.8</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.9</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -3242,6 +3244,10 @@ async function set3D(on) {
   v3Frame();
 }
 $('#btn3D').onclick = () => set3D(!v3.on);
+// Kurbeln-Look: Satellit in Schwarz–Grau–Lime–Weiß (SVG-Filter #k3d), umschaltbar auf echte Farben
+function v3Look() { const mono = settings.v3Color !== true; $('#v3d').classList.toggle('mono', mono); $('#v3Col').textContent = mono ? 'Echte Farben' : 'Kurbeln-Farben'; }
+$('#v3Col').onclick = () => { settings.v3Color = !(settings.v3Color === true); saveSettings(); v3Look(); };
+v3Look();
 function setSV(on) {
   if (on && v3.on) set3D(false);
   settings.svOn = on; saveSettings(); $('#cSV').checked = on;

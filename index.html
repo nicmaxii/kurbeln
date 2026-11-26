@@ -99,10 +99,17 @@ body:has(.overlay[style*="flex"]) #toast{top:auto;bottom:110px}
 #v3d.mono canvas{filter:url(#k3d)}
 #v3Col{position:absolute;left:12px;bottom:12px;z-index:3;font-size:12px!important;padding:5px 12px!important}
 #v3Msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--tx2);text-align:center;padding:20px;pointer-events:none}
-#stage.svOn #mapBox,#stage.v3On #mapBox{right:50%}
-#stage.svOn #sv,#stage.v3On #v3d{display:block}
-#stage.svOn #mapTools,#stage.v3On #mapTools{right:calc(50% + 12px);bottom:90px}
-#stage.v3On #controls{left:25%;flex-wrap:wrap;justify-content:center;max-width:calc(50% - 24px)}
+/* Ansichten: data-main = groß (links bzw. ganz), data-side = rechte Hälfte */
+#stage[data-main] #sv,#stage[data-main] #v3d{display:none;left:0;right:0;width:auto;top:0;bottom:0;border-left:0}
+#stage[data-main="sv"] #sv,#stage[data-main="3d"] #v3d{display:block;z-index:1}
+#stage.split[data-main="2d"] #mapBox,#stage.split[data-main="sv"] #sv,#stage.split[data-main="3d"] #v3d{right:50%}
+#stage[data-side="sv"] #sv,#stage[data-side="3d"] #v3d{display:block;left:50%;z-index:2;border-left:2px solid #000}
+#stage[data-side="2d"] #mapBox{left:50%;z-index:2;border-left:2px solid #000}
+#stage.no2d #mapBox{visibility:hidden}#stage.no2d #btnHeadUp,#stage.no2d #btnZoomRoute,#stage.no2d #btnFollow{display:none!important}
+#stage.split #mapTools{right:calc(50% + 12px);bottom:90px}
+#stage.split #controls{left:25%;flex-wrap:wrap;justify-content:center;max-width:calc(50% - 24px)}
+#viewPick{display:none;position:absolute;right:calc(100% + 8px);bottom:0;width:300px;background:var(--s1);border:1px solid var(--ln);border-radius:14px;padding:10px 12px;flex-direction:column;gap:4px;box-shadow:0 10px 30px rgba(0,0,0,.4)}#viewPick.open{display:flex}#viewPick small{color:var(--tx2);font-size:12px}#viewPick .subcats{margin:0 0 6px}#viewPick .vswap{align-self:flex-start}
+#mapTools{position:absolute}
 #stage.svOn #controls{left:25%;flex-wrap:wrap;justify-content:center;max-width:calc(50% - 24px)}
 #svPano{position:absolute;inset:0}
 #svMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aab4c0;text-align:center;padding:40px;pointer-events:none;font-size:14px;z-index:3}
@@ -140,7 +147,7 @@ details summary{cursor:pointer;color:#8ab4ff;font-size:13px;margin-top:6px}
 #wbox .sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 #wbox .wcount{font-size:15px;font-weight:600;color:var(--tx);letter-spacing:.02em;margin-bottom:2px}#wbox .wcount b{color:var(--acc);font-family:var(--numfont);font-weight:500}#wbox .wcount span{color:var(--tx2);font-weight:500}
 #wbox .wlast{color:var(--tx)}#wbox .wlast:empty{display:none}
-.upList{width:300px;max-height:calc(100vh - 340px);overflow:hidden;padding:10px 12px!important;display:flex;flex-direction:column;gap:4px}.upList h4{margin:0 0 4px;font-size:12px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em}
+.upList{width:auto;align-self:stretch;min-width:0;max-height:calc(100vh - 340px);overflow:hidden;padding:10px 12px!important;display:flex;flex-direction:column;gap:4px}.upList h4{margin:0 0 4px;font-size:12px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em}
 .upRow{position:relative;display:grid;grid-template-columns:62px 1fr auto;gap:8px;align-items:center;padding:6px 8px 6px 12px;border-radius:8px;background:var(--s1);font-family:var(--numfont);font-size:14px;color:var(--tx);overflow:hidden}
 .upRow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--z)}.upRow i{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--acc) 16%,transparent);pointer-events:none}
 .upRow small{color:var(--tx2);font-size:12px}.upRow.now{outline:1px solid var(--acc)}.upRow.done{opacity:.55}.upRow b{font-weight:500}
@@ -469,9 +476,9 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
   body:has(#setup[style*="flex"]) footer{display:none}
 }
 @media (max-width:760px) and (orientation:portrait){
-  #stage.svOn #mapBox,#stage.v3On #mapBox{right:0;bottom:50%}
-  #stage.svOn #sv,#stage.v3On #v3d{top:50%;width:100%;border-left:0;border-top:2px solid #000}
-  #stage.svOn #mapTools,#stage.v3On #mapTools{right:8px;bottom:auto}
+  #stage.split[data-main="2d"] #mapBox,#stage.split[data-main="sv"] #sv,#stage.split[data-main="3d"] #v3d{right:0;bottom:50%}
+  #stage[data-side="sv"] #sv,#stage[data-side="3d"] #v3d,#stage[data-side="2d"] #mapBox{left:0;top:50%;border-left:0;border-top:2px solid #000}
+  #stage.split #mapTools{right:8px;bottom:auto}
 }
 /* ---------- Handy während der Fahrt (hoch und quer) ---------- */
 @media (max-width:760px),(max-height:500px){
@@ -1377,8 +1384,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div class="m" id="placeBox" style="display:none"><div class="l">Ort</div><div class="pv" id="hOrt">–</div><div class="gsub" id="hOrtN"></div></div>
   </div>
   <div id="sv"><div id="svPano"></div><div id="svMsg">Street View wird geladen …</div><div id="svInfo"></div></div>
-  <div id="v3d" class="mono"><div id="v3Map" style="position:absolute;inset:0"></div><button id="v3Col" title="Satellitenbild in Kurbeln-Farben (Schwarz, Grau, Lime) oder in echten Farben">Echte Farben</button><div id="v3Msg">3D-Ansicht wird geladen …</div></div>
+  <div id="v3d" class="mono"><div id="v3Map" style="position:absolute;inset:0"></div><div id="v3Msg">3D-Ansicht wird geladen …</div></div>
   <div id="mapTools">
+    <div id="viewPick"></div><button id="btnView" title="Ansichten anordnen: was groß ist und was daneben">Ansicht</button>
     <button id="btn3D" title="3D-Satellitenflug neben der Karte ein-/ausblenden – kostenlos, ohne Schlüssel">3D</button>
     <button id="btnSV" title="Google Street View neben der Karte ein-/ausblenden">Street View</button>
     <button id="btnFollow" style="display:none">◎ Karte folgen</button>
@@ -1428,7 +1436,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 7.9</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.0</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2686,7 +2694,7 @@ function controlTrainer(force) {
     const crr = cobbleAt(route, ride.distance) ? CRR_COBBLE : CRR_ROAD;
     if (force || L.mode !== 'sim' || Math.abs(L.v - g) >= 0.2 || L.crr !== crr || now - L.t > 10000) { trainer.setSim(g, crr); Object.assign(L, { mode: 'sim', v: g, crr, t: now }); }
   }
-  $('#sMode').textContent = 'Modus: ' + (L.mode === 'erg' ? 'ERG ' + L.tgt + ' W' + (L.off ? ' (Trainer ' + L.v + ' W)' : '') : L.mode === 'sim' ? 'SIM ' + L.v.toFixed(1) + ' %' : '–');
+  $('#sMode').textContent = 'Modus: ' + (L.mode === 'erg' ? 'ERG ' + L.tgt + ' W' + (pmActive() ? ' · PowerMatch ' + (L.off >= 0 ? '+' : '−') + Math.abs(L.off || 0) + ' W' : L.off ? ' (Trainer ' + L.v + ' W)' : '') : L.mode === 'sim' ? 'SIM ' + L.v.toFixed(1) + ' %' : '–');
 }
 function physics(dt, P, grade) {
   const m = settings.weight + settings.bike, g = 9.81, cda = 0.32, crr = cobbleAt(route, ride.distance) ? CRR_COBBLE : CRR_ROAD, rho = 1.2;
@@ -2915,7 +2923,7 @@ function updateHUD() {
   const nx = wo.segs[sa.i + 1];
   if (nx) { const w0 = segWatts(nx, 0, settings.ftp), w1 = segWatts(nx, 1, settings.ftp); const f = x => Math.round(x * (1 + ride.bias / 100)); $('#wNext').textContent = 'Danach: ' + fmtT(nx.dur) + ' @ ' + (w0 == null ? 'frei' : (Math.round(w0) === Math.round(w1) ? f(w0) : f(w0) + '→' + f(w1)) + ' W'); }
   else $('#wNext').textContent = 'Letztes Intervall';
-  $('#wBias').textContent = [ride.bias ? 'Intensität ' + (ride.bias > 0 ? '+' : ride.bias < 0 ? '−' : '±') + Math.abs(ride.bias) + ' %' : '', pmActive() && settings.erg ? 'PowerMatch: Trainer ' + (live.pmOffset >= 0 ? '+' : '') + Math.round(live.pmOffset) + ' W' : ''].filter(Boolean).join(' · ');
+  $('#wBias').textContent = [ride.bias ? 'Intensität ' + (ride.bias > 0 ? '+' : ride.bias < 0 ? '−' : '±') + Math.abs(ride.bias) + ' %' : ''].filter(Boolean).join(' · ');
 }
 // ---------- Spalte „Was kommt“: anstehende Abschnitte (Vorschau-Varianten ?liste=a|b|c) ----------
 const UPL = new URLSearchParams(location.search).get('liste') || settings.upList || 'd'; // Standard seit 6.9: Zeilen im Look von C mit allen Abschnitten (Watt · Dauer)
@@ -3223,10 +3231,9 @@ function v3Frame() {
   v3.map.jumpTo({ center: p, bearing: v3.bear, pitch: 68, zoom: 15 });
   v3.map.getSource('me')?.setData({ type: 'Point', coordinates: p });
 }
-async function set3D(on) {
-  if (on && settings.svOn) setSV(false);
-  v3.on = on; $('#stage').classList.toggle('v3On', on); $('#btn3D').textContent = on ? '3D aus' : '3D';
-  if (map) setTimeout(() => { map.invalidateSize(); if ((ride.state === 'running' || ride.state === 'paused') && follow && route.lat) map.panTo(latLonAt(route, ride.distance), { animate: false }); }, 50);
+async function v3Activate(on) {
+  if (v3.on === on && (!on || v3.map)) { if (on && v3.map) setTimeout(() => v3.map.resize(), 60); return; }
+  v3.on = on;
   cancelAnimationFrame(v3.raf);
   if (!on) return;
   if (!route.lat) { $('#v3Msg').textContent = 'Diese Strecke hat keine Karte – 3D gibt es nur für Strecken mit GPS.'; return; }
@@ -3243,23 +3250,48 @@ async function set3D(on) {
   } else { $('#v3Msg').textContent = ''; setTimeout(() => v3.map.resize(), 60); }
   v3Frame();
 }
-$('#btn3D').onclick = () => set3D(!v3.on);
+
 // Kurbeln-Look: Satellit in Schwarz–Grau–Lime–Weiß (SVG-Filter #k3d), umschaltbar auf echte Farben
-function v3Look() { const mono = settings.v3Color !== true; $('#v3d').classList.toggle('mono', mono); $('#v3Col').textContent = mono ? 'Echte Farben' : 'Kurbeln-Farben'; }
-$('#v3Col').onclick = () => { settings.v3Color = !(settings.v3Color === true); saveSettings(); v3Look(); };
+function v3Look() { $('#v3d').classList.toggle('mono', settings.v3Color !== true); }
 v3Look();
-function setSV(on) {
-  if (on && v3.on) set3D(false);
-  settings.svOn = on; saveSettings(); $('#cSV').checked = on;
-  $('#stage').classList.toggle('svOn', on);
-  $('#btnSV').textContent = on ? 'Street View aus' : 'Street View';
-  if (map) setTimeout(() => { map.invalidateSize(); if ((ride.state === 'running' || ride.state === 'paused') && follow && route.lat) map.panTo(latLonAt(route, ride.distance), { animate: false }); }, 50);
-  if (on) {
+function svActivate(on) {
+  const was = settings.svOn; settings.svOn = on; $('#cSV').checked = on;
+  if (on && !was) {
     if (!settings.gKey) { svMsg('Bitte zuerst unter „Connections → Google Street View“ einen Schlüssel eintragen.'); return; }
     svInfoUpd(); sv.lastPano = sv.lastPano || null; svUpdate(true);
   }
 }
-$('#btnSV').onclick = () => setSV(!settings.svOn);
+// ---------- Ansichten frei anordnen: Haupt-Ansicht (groß) + optional eine daneben – je 2D-Karte, 3D oder Street View ----------
+const VIEWN = { '2d': '2D-Karte', '3d': '3D', sv: 'Street View', none: 'Aus' };
+function applyLayout(main, side) {
+  if (!VIEWN[main] || main === 'none') main = '2d'; if (!VIEWN[side] || side === main) side = 'none';
+  settings.viewMain = main; settings.viewSide = side; saveSettings();
+  const st = $('#stage'); st.dataset.main = main; st.dataset.side = side; st.classList.toggle('split', side !== 'none');
+  svActivate(main === 'sv' || side === 'sv'); v3Activate(main === '3d' || side === '3d');
+  $('#btnSV').textContent = settings.svOn ? 'Street View aus' : 'Street View'; $('#btn3D').textContent = v3.on ? '3D aus' : '3D';
+  st.classList.toggle('no2d', main !== '2d' && side !== '2d');
+  setTimeout(() => { if (map) { map.invalidateSize(); if ((ride.state === 'running' || ride.state === 'paused') && follow && route.lat) map.panTo(latLonAt(route, ride.distance), { animate: false }); } v3.map?.resize(); }, 60);
+  renderViewPick();
+}
+// Knöpfe 3D / Street View: als Ansicht daneben ein- bzw. ausblenden (ist sie die große, rückt die andere nach)
+function toggleView(v) {
+  const m = settings.viewMain || '2d', sd = settings.viewSide || 'none';
+  if (m === v) applyLayout(sd === 'none' ? '2d' : sd, 'none'); else if (sd === v) applyLayout(m, 'none'); else applyLayout(m, v);
+}
+function setSV(on) { if (on !== !!settings.svOn) toggleView('sv'); }
+function set3D(on) { if (on !== v3.on) toggleView('3d'); }
+$('#btnSV').onclick = () => toggleView('sv');
+$('#btn3D').onclick = () => toggleView('3d');
+function renderViewPick() {
+  const m = settings.viewMain || '2d', sd = settings.viewSide || 'none', row = (k, opts, cur) => opts.map(o => `<button class="${o === cur ? 'on' : ''}" data-${k}="${o}">${VIEWN[o]}</button>`).join('');
+  $('#viewPick').innerHTML = `<small>Groß</small><div class="subcats">${row('vm', ['2d', '3d', 'sv'], m)}</div><small>Daneben</small><div class="subcats">${row('vs', ['none', '2d', '3d', 'sv'].filter(o => o !== m), sd)}</div>${sd !== 'none' ? '<button class="vswap" data-vswap="1">Seiten tauschen</button>' : ''}<small>3D-Farben</small><div class="subcats"><button class="${settings.v3Color !== true ? 'on' : ''}" data-vc="0">Kurbeln-Look</button><button class="${settings.v3Color === true ? 'on' : ''}" data-vc="1">Echte Farben</button></div>`;
+  $('#viewPick').querySelectorAll('[data-vc]').forEach(b => b.onclick = () => { settings.v3Color = b.dataset.vc === '1'; saveSettings(); v3Look(); renderViewPick(); });
+  $('#viewPick').querySelectorAll('[data-vm]').forEach(b => b.onclick = () => applyLayout(b.dataset.vm, sd === b.dataset.vm ? m : sd));
+  $('#viewPick').querySelectorAll('[data-vs]').forEach(b => b.onclick = () => applyLayout(m, b.dataset.vs));
+  $('#viewPick').querySelector('[data-vswap]')?.addEventListener('click', () => applyLayout(sd, m));
+}
+$('#btnView').onclick = e => { e.stopPropagation(); renderViewPick(); $('#viewPick').classList.toggle('open'); };
+document.addEventListener('click', e => { if (!e.composedPath().some(el => el.id === 'viewPick' || el.id === 'btnView')) $('#viewPick').classList.remove('open'); });
 $('#cSV').addEventListener('change', e => setSV(e.target.checked));
 $('#iGKey').addEventListener('change', e => {
   const k = e.target.value.trim();
@@ -5149,6 +5181,7 @@ initMap();
 loadSetup();
 setView(settings.view); renderRecent(); setTheme('hell');
 if (settings.svOn) { settings.svOn = false; saveSettings(); } // Karte startet immer ohne Street View
+applyLayout(settings.viewMain === 'sv' ? '2d' : settings.viewMain || '2d', settings.viewSide === 'sv' ? 'none' : settings.viewSide || 'none');
 stravaRenderState();
 (async () => { // gespeicherten Workout-Ordner wieder öffnen
   try {

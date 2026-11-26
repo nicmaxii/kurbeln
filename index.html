@@ -118,7 +118,7 @@ body:has(.overlay[style*="flex"]) #toast{top:auto;bottom:110px}
 details summary{cursor:pointer;color:#8ab4ff;font-size:13px;margin-top:6px}
 #mapTools{position:absolute;right:12px;bottom:28px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
 #mapTools button{background:var(--hud);backdrop-filter:blur(6px);font-size:13px;padding:7px 12px}
-#mapTools button.ico{width:38px;height:38px;padding:0!important;display:grid;place-items:center;border-radius:50%!important}#mapTools button.ico svg{display:block}
+#mapTools button.ico{width:38px;height:38px;padding:0!important;display:grid;place-items:center;border-radius:50%!important}#mapTools button.ico svg{display:block}#mapTools .t3d{font-size:13px;font-weight:600;letter-spacing:.02em}
 #mapTools button.ico.on{background:var(--sel)!important;color:var(--onsel)!important}
 #mapTools{align-items:flex-end}
 #noMap{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:24px;z-index:1;background:var(--bg)}
@@ -1390,7 +1390,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <div id="v3d" class="mono"><div id="v3Map" style="position:absolute;inset:0"></div><div id="v3Msg">3D-Ansicht wird geladen …</div></div>
   <div id="mapTools">
     <div id="viewPick"></div><button id="btnView" class="ico" title="Ansicht: anordnen, was groß ist und was daneben" aria-label="Ansicht"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M12 4.5v15"/></svg></button>
-    <button id="btn3D" class="ico" title="3D-Satellitenflug ein/aus" aria-label="3D"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></button>
+    <button id="btn3D" class="ico" title="3D-Satellitenflug ein/aus" aria-label="3D"><b class="t3d">3D</b></button>
     <button id="btnSV" class="ico" title="Street View ein/aus" aria-label="Street View"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
     <button id="btnFollow" class="ico" style="display:none" title="Karte wieder mitfahren lassen" aria-label="Karte folgen"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
     <div class="hudSize"><button id="btnHudS" title="Werte kleiner" aria-label="Werte kleiner">A−</button><button id="btnHudL" title="Werte größer" aria-label="Werte größer">A+</button></div>
@@ -1439,7 +1439,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.2</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.3</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>

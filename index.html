@@ -1436,7 +1436,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.0</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.1</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2765,7 +2765,7 @@ function tick() {
     }
     if (!route.loop && !ride.finished && ride.distance >= route.len) { ride.finished = true; toast('Ziel erreicht! Du kannst weiterfahren oder beenden.', 5000); }
     const sec = Math.floor(ride.elapsed);
-    if (sec > ride.lastSec && settings.svOn) svUpdate();
+    if (sec > ride.lastSec && settings.svOn) { svUpdate(); svAim(); }
     if (sec > ride.lastSec) { ride.lastSec = sec; recordSample(); controlTrainer(); }
     if (ride.elapsed - ride.lastSave > 60) { ride.lastSave = ride.elapsed; LS.set('kurbel.lastRide', Object.assign(rideRecord(), { done: false })); }
   }
@@ -3169,6 +3169,14 @@ async function svEnsure() {
   }
 }
 const bearingDeg = (la1, lo1, la2, lo2) => brgD({ lat: la1, lon: lo1 }, { lat: la2, lon: lo2 }) * 180 / Math.PI;
+// Blick immer in Fahrtrichtung: jede Sekunde (kostet keine Bilder) vom Standort des Bildes auf einen Punkt 60 m vor dir drehen, weich nachgeführt
+function svAim() {
+  if (!settings.svOn || !sv.pano || !sv.panoLL || !route.lat) return;
+  const ah = latLonAt(route, ride.distance + 60), b = bearingDeg(sv.panoLL[0], sv.panoLL[1], ah[0], ah[1]);
+  if (sv.head == null) sv.head = b;
+  sv.head = (sv.head + ((((b - sv.head) % 360) + 540) % 360 - 180) * 0.5 + 360) % 360;
+  sv.pano.setPov({ heading: sv.head, pitch: -2 });
+}
 async function svUpdate(force) {
   if (!settings.svOn || !route.lat || sv.busy || sv.authFailed) return;
   const d = ride.distance;
@@ -3183,10 +3191,11 @@ async function svUpdate(force) {
     if (sv.authFailed) return; // Schlüssel abgelehnt – Fehlermeldung stehen lassen
     const loc = res.data.location;
     if (loc.pano !== sv.lastPano) {
-      sv.lastPano = loc.pano;
-      const ah = latLonAt(route, d + 40);
+      sv.lastPano = loc.pano; sv.panoLL = [loc.latLng.lat(), loc.latLng.lng()];
+      const ah = latLonAt(route, d + 60);
       sv.pano.setPano(loc.pano);
-      sv.pano.setPov({ heading: bearingDeg(loc.latLng.lat(), loc.latLng.lng(), ah[0], ah[1]), pitch: -2 });
+      sv.head = bearingDeg(sv.panoLL[0], sv.panoLL[1], ah[0], ah[1]);
+      sv.pano.setPov({ heading: sv.head, pitch: -2 });
       sv.pano.setZoom(0);
       svCount(); svMsg('');
     }

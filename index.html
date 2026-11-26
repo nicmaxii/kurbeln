@@ -121,6 +121,7 @@ details summary{cursor:pointer;color:#8ab4ff;font-size:13px;margin-top:6px}
 #mapTools button.ico{width:38px;height:38px;padding:0!important;display:grid;place-items:center;border-radius:50%!important}#mapTools button.ico svg{display:block}#mapTools .t3d{font-size:13px;font-weight:600;letter-spacing:.02em}
 #mapTools button.ico.on{background:var(--sel)!important;color:var(--onsel)!important}
 #mapTools{align-items:flex-end}
+#mapTools.row{flex-direction:row;flex-wrap:wrap-reverse;justify-content:flex-end;align-items:center;max-width:calc(100% - 24px)}#mapTools.row #viewPick{right:0;bottom:calc(100% + 8px)}
 #noMap{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:24px;z-index:1;background:var(--bg)}
 .rider{width:30px;height:30px;position:relative}
 .rider .dot{position:absolute;left:7px;top:7px;width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.5)}
@@ -1439,7 +1440,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.3</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.4</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2863,6 +2864,13 @@ function syncRideUI() {
 }
 
 // ---------- HUD ----------
+// Kartenknöpfe weichen aus: reicht die rechte Werte-Spalte bis zu den Knöpfen, legen sie sich als Reihe unten rechts hin
+function toolsFit() {
+  const t = $('#mapTools'), h = document.querySelector('.hud.right'); if (!t || !h || t.offsetParent === null) return;
+  t.classList.remove('row'); const a = h.getBoundingClientRect(), b = t.getBoundingClientRect();
+  if (a.bottom > b.top - 8 && a.left < b.right && a.right > b.left) t.classList.add('row');
+}
+setInterval(toolsFit, 1000); addEventListener('resize', toolsFit);
 function updateHUD() {
   syncRideUI(); biasText();
   updateGhostHUD(); updatePlaceHUD();

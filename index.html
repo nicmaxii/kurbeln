@@ -1444,7 +1444,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.7</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.8</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1804,14 +1804,21 @@ function buildRoute(id, name, len, loop, eleFn, curveFn) {
 const TAU = Math.PI * 2;
 const builtinRoutes = []; // nur noch echte Strecken mit Karte
 
+// Strecken ohne Rundkurs werden nach dem Ende in Gegenrichtung weitergefahren (hoch – runter – hoch …): Position auf der Strecke für eine gefahrene Distanz
+function routeD(r, d) {
+  if (r.loop) return ((d % r.len) + r.len) % r.len;
+  if (d <= r.len) return clamp(d, 0, r.len);
+  const P = 2 * r.len, m = d % P; return m <= r.len ? m : P - m;
+}
+const routeDir = (r, d) => !r.loop && d > r.len && Math.floor(d / r.len) % 2 === 1 ? -1 : 1;
 function routePos(r, d) {
-  d = r.loop ? ((d % r.len) + r.len) % r.len : clamp(d, 0, r.len);
+  d = routeD(r, d);
   const f = d / STEP, i = Math.min(Math.floor(f), r.ele.length - 2);
   return [i, f - i];
 }
 function eleAt(r, d) { const [i, t] = routePos(r, d); return r.ele[i] + (r.ele[i + 1] - r.ele[i]) * t; }
-function curveAt(r, d) { if (!r.loop && (d < 0 || d > r.len)) return 0; const [i, t] = routePos(r, d); return r.curve[i] + (r.curve[i + 1] - r.curve[i]) * t; }
-function gradeAt(r, d) { if (!r.loop && d >= r.len) return 0; return (eleAt(r, d + 15) - eleAt(r, d - 15)) / 30; }
+function curveAt(r, d) { if (!r.loop && d < 0) return 0; const [i, t] = routePos(r, d); return (r.curve[i] + (r.curve[i + 1] - r.curve[i]) * t) * routeDir(r, d); }
+function gradeAt(r, d) { return (eleAt(r, d + 15) - eleAt(r, d - 15)) / 30; } // in Gegenrichtung automatisch negativ
 
 const havD = (a, b) => { const R = 6371000, r = Math.PI / 180, dLa = (b.lat - a.lat) * r, dLo = (b.lon - a.lon) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
 const brgD = (a, b) => { const r = Math.PI / 180, y = Math.sin((b.lon - a.lon) * r) * Math.cos(b.lat * r), x = Math.cos(a.lat * r) * Math.sin(b.lat * r) - Math.sin(a.lat * r) * Math.cos(b.lat * r) * Math.cos((b.lon - a.lon) * r); return Math.atan2(y, x); };
@@ -2756,7 +2763,7 @@ function tick() {
         if (pAvg > 30 && !live.pmDev && Date.now() - (ride.tgtTs || 0) > 8000) { live.pmK = clamp((live.pmK || 0) + (tgt - pAvg) / tgt * dt / 25, -0.15, 0.15); settings.pmK = live.pmK; }
       } }
     const pois = route.pois || [];
-    while (ride.poiIdx < pois.length && pois[ride.poiIdx].d <= (route.loop ? ride.distance % route.len : ride.distance)) { if (ride.distance - pois[ride.poiIdx].d < 200 || route.loop) toast(pois[ride.poiIdx].name, 3500); ride.poiIdx++; }
+    while (ride.poiIdx < pois.length && pois[ride.poiIdx].d <= routeD(route, ride.distance)) { if (routeD(route, ride.distance) - pois[ride.poiIdx].d < 200 || route.loop) toast(pois[ride.poiIdx].name, 3500); ride.poiIdx++; }
     if (route.loop && Math.floor(ride.distance / route.len) !== ride.lap) { ride.lap = Math.floor(ride.distance / route.len); ride.poiIdx = 0; if (ride.lap > 0) toast('Runde ' + (ride.lap + 1)); }
     const wo = ride.workout;
     if (wo && !wo.manual && !ride.woDone) {
@@ -2772,7 +2779,10 @@ function tick() {
         else ride.beeped = -1;
       }
     }
-    if (!route.loop && !ride.finished && ride.distance >= route.len) { ride.finished = true; toast('Ziel erreicht! Du kannst weiterfahren oder beenden.', 5000); }
+    if (!route.loop && ride.distance >= route.len) { // Ende erreicht: in Gegenrichtung weiter, am Start wieder umdrehen
+      const leg = Math.floor(ride.distance / route.len);
+      if (leg !== ride.leg) { ride.leg = leg; ride.finished = true; ride.poiIdx = leg % 2 ? (route.pois || []).length : 0;
+        toast(leg % 2 ? (KA_SUMMIT[route.id] || /Bergig/.test(routeTags(route)) ? 'Oben angekommen – jetzt geht es runter und dann wieder hoch.' : 'Ende der Strecke – es geht in Gegenrichtung zurück.') : 'Wieder am Start – auf ein Neues!', 5000); } }
     const sec = Math.floor(ride.elapsed);
     if (sec > ride.lastSec && settings.svOn) { svUpdate(); svAim(); }
     if (sec > ride.lastSec) { ride.lastSec = sec; recordSample(); controlTrainer(); }
@@ -2833,7 +2843,7 @@ function updatePlaceHUD() {
   const box = $('#placeBox'), riding = ride.state === 'running' || ride.state === 'paused';
   if (!riding || !places.list.length || places.id !== route.id || !route.lat) { box.style.display = 'none'; return; }
   box.style.display = '';
-  const L = route.len, pos = route.loop ? ((ride.distance % L) + L) % L : ride.distance, ll = latLonAt(route, ride.distance);
+  const L = route.len, pos = routeD(route, ride.distance), ll = latLonAt(route, ride.distance);
   let cur = null, cd = 1e9;
   if (ll) for (const p of places.list) { const d = havD({ lat: ll[0], lon: ll[1] }, p); if (d < p.r * .8 && (d / p.r) < cd) { cd = d / p.r; cur = p; } }
   let nx = places.list.find(p => p.d > pos + 150 && p.name !== cur?.name), nd = nx ? nx.d - pos : 0;
@@ -3123,7 +3133,7 @@ function updateMap() {
     $('#map').style.transform = `perspective(${TILT.p}px) rotateX(${TILT.deg}deg) rotate(${mapRot.a.toFixed(1)}deg)`; $('#map').style.setProperty('--unrot', (-mapRot.a).toFixed(1) + 'deg');
   }
   if (riding && ghost.on && ride.started) {
-    let gd = ghostDist(ride.elapsed); if (route.loop) gd = ((gd % route.len) + route.len) % route.len; else gd = Math.min(gd, route.len);
+    let gd = ghostDist(ride.elapsed); gd = routeD(route, gd);
     const gl = latLonAt(route, gd);
     if (!ghost.marker || !routeGroup.hasLayer(ghost.marker)) ghost.marker = L.circleMarker(gl, { radius: 7, color: '#0c0c0d', weight: 2, fillColor: '#9a9a94', fillOpacity: .95, interactive: false }).addTo(routeGroup);
     else ghost.marker.setLatLng(gl);
@@ -3131,8 +3141,8 @@ function updateMap() {
   if (riding && follow) map.panTo(ll, { animate: false });
   if (riding && performance.now() - lastDoneUpd > 1000 && doneLine) {
     lastDoneUpd = performance.now();
-    const lapStart = route.loop ? Math.floor(ride.distance / route.len) * route.len : 0, pd = Math.min(ride.distance - lapStart, route.len);
-    const pts = []; for (let x = 0; x < pd; x += 30) pts.push(latLonAt(route, lapStart + x)); pts.push(latLonAt(route, ride.distance));
+    const pd = routeD(route, ride.distance);
+    const pts = []; for (let x = 0; x < pd; x += 30) pts.push(latLonAt(route, x)); pts.push(latLonAt(route, pd));
     doneLine.setLatLngs(pts);
   }
 }
@@ -3252,7 +3262,7 @@ function v3Frame() {
   if ($('#v3Msg').textContent) $('#v3Msg').textContent = '';
   v3Route();
   const run = ride.state === 'running', d = Math.max(0, (run || ride.state === 'paused' ? ride.distance : 0) + (run ? ride.v * Math.min(0.3, (performance.now() - lastTickWall) / 1000) : 0));
-  const p = v3Pos(d), a = v3Pos(route.loop ? d + 250 : Math.min(route.len, d + 250)), r = Math.PI / 180;
+  const p = v3Pos(d), a = v3Pos(d + 250), r = Math.PI / 180;
   const b = Math.atan2((a[0] - p[0]) * Math.cos(p[1] * r), a[1] - p[1]) / r;
   if (v3.bear == null) v3.bear = b; else v3.bear += (((b - v3.bear + 540) % 360) - 180) * 0.03;
   v3.map.jumpTo({ center: p, bearing: v3.bear, pitch: 68, zoom: 15 });
@@ -3293,9 +3303,11 @@ const VIEWN = { '2d': '2D-Karte', '3d': '3D', sv: 'Street View', none: 'Aus' };
 const isMountain = r => !!r && r.len > 0 && r.ascent / (r.len / 1000) >= 15; // wie Kennzeichnung „Bergig“
 const terrainKey = () => isMountain(route) ? 'mtn' : 'flat';
 // Ansicht für die aktuelle Strecke: zuletzt gewählte Anordnung für flache bzw. bergige Strecken (bergig: 3D groß, Karte daneben)
+// Standard seit 8.8 (Wunsch von Max): 3D groß + Street View daneben; ohne Google-Schlüssel statt Street View die 2D-Karte
 function layoutForRoute() {
-  const L = (settings.layouts ||= {}), k = terrainKey(), d = k === 'mtn' ? { main: '3d', side: '2d' } : { main: settings.viewMain || '2d', side: settings.viewSide || 'none' };
-  const l = L[k] || d; applyLayout(l.main === 'sv' ? '2d' : l.main, l.side === 'sv' ? 'none' : l.side);
+  if (settings.layoutV !== 2) { settings.layouts = {}; settings.layoutV = 2; }
+  const L = (settings.layouts ||= {}), l = L[terrainKey()] || { main: '3d', side: 'sv' }, noSv = v => v === 'sv' && !settings.gKey;
+  applyLayout(noSv(l.main) ? '3d' : l.main, noSv(l.side) ? (l.main === '2d' ? 'none' : '2d') : l.side);
 }
 function applyLayout(main, side) {
   if (!VIEWN[main] || main === 'none') main = '2d'; if (!VIEWN[side] || side === main) side = 'none';
@@ -5215,7 +5227,6 @@ if (!document.fullscreenEnabled) $('#btnFull').style.display = 'none';
 initMap();
 loadSetup();
 setView(settings.view); renderRecent(); setTheme('hell');
-if (settings.svOn) { settings.svOn = false; saveSettings(); } // Karte startet immer ohne Street View
 layoutForRoute();
 // Teilung per Ziehen am Trennstrich ändern, wird gemerkt
 { const st = $('#stage'), setSplit = v => st.style.setProperty('--split', v + '%'); setSplit(settings.splitPct || 50);

@@ -102,12 +102,14 @@ body:has(.overlay[style*="flex"]) #toast{top:auto;bottom:110px}
 /* Ansichten: data-main = groß (links bzw. ganz), data-side = rechte Hälfte */
 #stage[data-main] #sv,#stage[data-main] #v3d{display:none;left:0;right:0;width:auto;top:0;bottom:0;border-left:0}
 #stage[data-main="sv"] #sv,#stage[data-main="3d"] #v3d{display:block;z-index:1}
-#stage.split[data-main="2d"] #mapBox,#stage.split[data-main="sv"] #sv,#stage.split[data-main="3d"] #v3d{right:50%}
-#stage[data-side="sv"] #sv,#stage[data-side="3d"] #v3d{display:block;left:50%;z-index:2;border-left:2px solid #000}
-#stage[data-side="2d"] #mapBox{left:50%;z-index:2;border-left:2px solid #000}
+#stage.split[data-main="2d"] #mapBox,#stage.split[data-main="sv"] #sv,#stage.split[data-main="3d"] #v3d{right:calc(100% - var(--split,50%))}
+#stage[data-side="sv"] #sv,#stage[data-side="3d"] #v3d{display:block;left:var(--split,50%);z-index:2;border-left:2px solid #000}
+#stage[data-side="2d"] #mapBox{left:var(--split,50%);z-index:2;border-left:2px solid #000}
+#splitBar{display:none;position:absolute;top:0;bottom:0;left:calc(var(--split,50%) - 6px);width:12px;z-index:4;cursor:col-resize}#splitBar::after{content:"";position:absolute;left:4px;top:50%;width:4px;height:56px;margin-top:-28px;border-radius:4px;background:var(--tx2);opacity:.7}#splitBar:hover::after{background:var(--acc);opacity:1}
+#stage.split #splitBar{display:block}
 #stage.no2d #mapBox{visibility:hidden}#stage.no2d #btnHeadUp,#stage.no2d #btnZoomRoute,#stage.no2d #btnFollow{display:none!important}
-#stage.split #mapTools{right:calc(50% + 12px);bottom:90px}
-#stage.split #controls{left:25%;flex-wrap:wrap;justify-content:center;max-width:calc(50% - 24px)}
+#stage.split #mapTools{right:calc(100% - var(--split,50%) + 12px);bottom:90px}
+#stage.split #controls{left:calc(var(--split,50%) / 2);flex-wrap:wrap;justify-content:center;max-width:calc(var(--split,50%) - 24px)}
 #viewPick{display:none;position:absolute;right:calc(100% + 8px);bottom:0;width:300px;background:var(--s1);border:1px solid var(--ln);border-radius:14px;padding:10px 12px;flex-direction:column;gap:4px;box-shadow:0 10px 30px rgba(0,0,0,.4)}#viewPick.open{display:flex}#viewPick small{color:var(--tx2);font-size:12px}#viewPick .subcats{margin:0 0 6px}#viewPick .vswap{align-self:flex-start}
 #mapTools{position:absolute}
 #stage.svOn #controls{left:25%;flex-wrap:wrap;justify-content:center;max-width:calc(50% - 24px)}
@@ -482,6 +484,7 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
 @media (max-width:760px) and (orientation:portrait){
   #stage.split[data-main="2d"] #mapBox,#stage.split[data-main="sv"] #sv,#stage.split[data-main="3d"] #v3d{right:0;bottom:50%}
   #stage[data-side="sv"] #sv,#stage[data-side="3d"] #v3d,#stage[data-side="2d"] #mapBox{left:0;top:50%;border-left:0;border-top:2px solid #000}
+  #stage.split #splitBar{display:none}
   #stage.split #mapTools{right:8px;bottom:auto}
 }
 /* ---------- Handy während der Fahrt (hoch und quer) ---------- */
@@ -1388,6 +1391,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div class="m" id="placeBox" style="display:none"><div class="l">Ort</div><div class="pv" id="hOrt">–</div><div class="gsub" id="hOrtN"></div></div>
   </div>
   <div id="sv"><div id="svPano"></div><div id="svMsg">Street View wird geladen …</div><div id="svInfo"></div></div>
+  <div id="splitBar" title="Ziehen, um die Aufteilung zu ändern"></div>
   <div id="v3d" class="mono"><div id="v3Map" style="position:absolute;inset:0"></div><div id="v3Msg">3D-Ansicht wird geladen …</div></div>
   <div id="mapTools">
     <div id="viewPick"></div><button id="btnView" class="ico" title="Ansicht: anordnen, was groß ist und was daneben" aria-label="Ansicht"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M12 4.5v15"/></svg></button>
@@ -1440,7 +1444,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.6</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.7</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -2630,6 +2634,7 @@ const avgHist = h => h.length ? h.reduce((a, x) => a + x[1], 0) / h.length : 0;
 let wakeLock = null;
 
 function startRide() {
+  try { layoutForRoute(); } catch (e) {}
   live.pmK = clamp(settings.pmK || 0, -0.15, 0.15); // PowerMatch-Faktor der letzten Fahrt als Startwert
   if (!trainer) { toast('Noch kein Trainer verbunden – bitte oben unter „Connections“ den Trainer verbinden (oder die Demo starten).', 6000); setTimeout(() => { connDD.classList.add('open'); $('#btnConn').setAttribute('aria-expanded', true); updConnServices(); }, 0); return; }
   readSetup();
@@ -3285,9 +3290,16 @@ function svActivate(on) {
 }
 // ---------- Ansichten frei anordnen: Haupt-Ansicht (groß) + optional eine daneben – je 2D-Karte, 3D oder Street View ----------
 const VIEWN = { '2d': '2D-Karte', '3d': '3D', sv: 'Street View', none: 'Aus' };
+const isMountain = r => !!r && r.len > 0 && r.ascent / (r.len / 1000) >= 15; // wie Kennzeichnung „Bergig“
+const terrainKey = () => isMountain(route) ? 'mtn' : 'flat';
+// Ansicht für die aktuelle Strecke: zuletzt gewählte Anordnung für flache bzw. bergige Strecken (bergig: 3D groß, Karte daneben)
+function layoutForRoute() {
+  const L = (settings.layouts ||= {}), k = terrainKey(), d = k === 'mtn' ? { main: '3d', side: '2d' } : { main: settings.viewMain || '2d', side: settings.viewSide || 'none' };
+  const l = L[k] || d; applyLayout(l.main === 'sv' ? '2d' : l.main, l.side === 'sv' ? 'none' : l.side);
+}
 function applyLayout(main, side) {
   if (!VIEWN[main] || main === 'none') main = '2d'; if (!VIEWN[side] || side === main) side = 'none';
-  settings.viewMain = main; settings.viewSide = side; saveSettings();
+  settings.viewMain = main; settings.viewSide = side; (settings.layouts ||= {})[terrainKey()] = { main, side }; saveSettings();
   const st = $('#stage'); st.dataset.main = main; st.dataset.side = side; st.classList.toggle('split', side !== 'none');
   svActivate(main === 'sv' || side === 'sv'); v3Activate(main === '3d' || side === '3d');
   $('#btnSV').classList.toggle('on', !!settings.svOn); $('#btn3D').classList.toggle('on', v3.on); $('#btnView').classList.toggle('on', side !== 'none' || main !== '2d');
@@ -5204,7 +5216,14 @@ initMap();
 loadSetup();
 setView(settings.view); renderRecent(); setTheme('hell');
 if (settings.svOn) { settings.svOn = false; saveSettings(); } // Karte startet immer ohne Street View
-applyLayout(settings.viewMain === 'sv' ? '2d' : settings.viewMain || '2d', settings.viewSide === 'sv' ? 'none' : settings.viewSide || 'none');
+layoutForRoute();
+// Teilung per Ziehen am Trennstrich ändern, wird gemerkt
+{ const st = $('#stage'), setSplit = v => st.style.setProperty('--split', v + '%'); setSplit(settings.splitPct || 50);
+  let drag = false;
+  $('#splitBar').addEventListener('pointerdown', e => { drag = true; e.target.setPointerCapture(e.pointerId); e.preventDefault(); });
+  $('#splitBar').addEventListener('pointermove', e => { if (!drag) return; const r = st.getBoundingClientRect(); settings.splitPct = Math.round(clamp((e.clientX - r.left) / r.width * 100, 25, 75)); setSplit(settings.splitPct); map?.invalidateSize(); v3.map?.resize(); });
+  $('#splitBar').addEventListener('pointerup', () => { if (!drag) return; drag = false; saveSettings(); if (map && route.lat && (ride.state === 'running' || ride.state === 'paused') && follow) map.panTo(latLonAt(route, ride.distance), { animate: false }); });
+}
 stravaRenderState();
 (async () => { // gespeicherten Workout-Ordner wieder öffnen
   try {

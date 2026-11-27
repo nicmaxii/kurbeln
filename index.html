@@ -76,9 +76,9 @@ header{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(-
 @media (max-width:760px){.hrow{grid-template-columns:1fr auto}.hrow .n{display:none}}
 .vrec{display:flex;gap:8px;align-items:center;margin-top:6px}.vrec button:first-child{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis}
 #stage.view-data #dash{display:grid}
-#stage.view-data .hud,#stage.view-data #wbox,#stage.view-data #mapTools,#stage.view-data #sv,#stage.view-data #v3d{display:none!important}
+#stage.view-data .hud,#stage.view-data #wbox,#stage.view-data #mapTools,#stage.view-data #sv,#stage.view-data #v3d,#stage.view-data #ml{display:none!important}
 #stage.view-video #vid{display:block}
-#stage.view-video #mapTools,#stage.view-video #sv,#stage.view-video #v3d{display:none!important}
+#stage.view-video #mapTools,#stage.view-video #sv,#stage.view-video #v3d,#stage.view-video #ml{display:none!important}
 #stage.view-video.hasVid #vidBar{display:flex}
 #stage.hudOff .hud,#stage.hudOff #wbox{display:none!important}
 #stage.view-video .m{background:var(--hud)}
@@ -100,10 +100,11 @@ body:has(.overlay[style*="flex"]) #toast{top:auto;bottom:110px}
 #v3Col{position:absolute;left:12px;bottom:12px;z-index:3;font-size:12px!important;padding:5px 12px!important}
 #v3Msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--tx2);text-align:center;padding:20px;pointer-events:none}
 /* Ansichten: data-main = groß (links bzw. ganz), data-side = rechte Hälfte */
-#stage[data-main] #sv,#stage[data-main] #v3d{display:none;left:0;right:0;width:auto;top:0;bottom:0;border-left:0}
-#stage[data-main="sv"] #sv,#stage[data-main="3d"] #v3d{display:block;z-index:1}
-#stage.split[data-main="2d"] #mapBox,#stage.split[data-main="sv"] #sv,#stage.split[data-main="3d"] #v3d{right:calc(100% - var(--split,50%))}
-#stage[data-side="sv"] #sv,#stage[data-side="3d"] #v3d{display:block;left:var(--split,50%);z-index:2;border-left:2px solid #000}
+#ml{position:absolute;inset:0;display:none;background:var(--s0);z-index:2}#mlMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--tx2);pointer-events:none}#mlMsg:empty{display:none}
+#stage[data-main] #ml,#stage[data-main] #sv,#stage[data-main] #v3d{display:none;left:0;right:0;width:auto;top:0;bottom:0;border-left:0}
+#stage[data-main="sv"] #sv,#stage[data-main="3d"] #v3d,#stage[data-main="ml"] #ml{display:block;z-index:1}
+#stage.split[data-main="2d"] #mapBox,#stage.split[data-main="sv"] #sv,#stage.split[data-main="3d"] #v3d,#stage.split[data-main="ml"] #ml{right:calc(100% - var(--split,50%))}
+#stage[data-side="sv"] #sv,#stage[data-side="3d"] #v3d,#stage[data-side="ml"] #ml{display:block;left:var(--split,50%);z-index:2;border-left:2px solid #000}
 #stage[data-side="2d"] #mapBox{left:var(--split,50%);z-index:2;border-left:2px solid #000}
 #splitBar{display:none;position:absolute;top:0;bottom:0;left:calc(var(--split,50%) - 6px);width:12px;z-index:4;cursor:col-resize}#splitBar::after{content:"";position:absolute;left:4px;top:50%;width:4px;height:56px;margin-top:-28px;border-radius:4px;background:var(--tx2);opacity:.7}#splitBar:hover::after{background:var(--acc);opacity:1}
 #stage.split #splitBar{display:block}
@@ -482,8 +483,8 @@ details.sec.more>summary{color:var(--text);font-weight:600;font-size:17px}
   body:has(#setup[style*="flex"]) footer{display:none}
 }
 @media (max-width:760px) and (orientation:portrait){
-  #stage.split[data-main="2d"] #mapBox,#stage.split[data-main="sv"] #sv,#stage.split[data-main="3d"] #v3d{right:0;bottom:50%}
-  #stage[data-side="sv"] #sv,#stage[data-side="3d"] #v3d,#stage[data-side="2d"] #mapBox{left:0;top:50%;border-left:0;border-top:2px solid #000}
+  #stage.split[data-main="2d"] #mapBox,#stage.split[data-main="sv"] #sv,#stage.split[data-main="3d"] #v3d,#stage.split[data-main="ml"] #ml{right:0;bottom:50%}
+  #stage[data-side="sv"] #sv,#stage[data-side="3d"] #v3d,#stage[data-side="2d"] #mapBox,#stage[data-side="ml"] #ml{left:0;top:50%;border-left:0;border-top:2px solid #000}
   #stage.split #splitBar{display:none}
   #stage.split #mapTools{right:8px;bottom:auto}
 }
@@ -1392,6 +1393,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   </div>
   <div id="sv"><div id="svPano"></div><div id="svMsg">Street View wird geladen …</div><div id="svInfo"></div></div>
   <div id="splitBar" title="Ziehen, um die Aufteilung zu ändern"></div>
+  <div id="ml"><div id="mlView" style="position:absolute;inset:0"></div><div id="mlMsg">Mapillary wird geladen …</div></div>
   <div id="v3d" class="mono"><div id="v3Map" style="position:absolute;inset:0"></div><div id="v3Msg">3D-Ansicht wird geladen …</div></div>
   <div id="mapTools">
     <div id="viewPick"></div><button id="btnView" class="ico" title="Ansicht: anordnen, was groß ist und was daneben" aria-label="Ansicht"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M12 4.5v15"/></svg></button>
@@ -1444,7 +1446,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <!-- Setup -->
   <div class="overlay" id="setup">
     <div class="card menu">
-      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.8</span></div>
+      <div class="mhead"><h2>Kurbeln</h2><span class="i" data-tip="So geht's: oben unter „Connections“ den Trainer verbinden, hier Strecke und Workout wählen, „Start“. Die Zeit läuft los, sobald Wattwerte ankommen. Während der Fahrt: Leertaste = Pause, ↑/↓ = Intensität, H = Werte ein/aus.">i</span><button class="linkbtn" id="btnTour">Einführung</button><span class="ver" title="Version">Version 8.9</span></div>
       <div class="warnbox" id="noBt" style="display:none">Bluetooth geht nur in <b>Google Chrome</b> oder Edge. Die Demo funktioniert trotzdem.</div>
       <div class="warnbox" id="recoverBox" style="display:none">Nicht gespeicherte Fahrt vom <span id="recoverDate"></span> gefunden. <button id="btnRecover">Ansehen</button></div>
       <div id="planBanner"></div>
@@ -1594,6 +1596,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <li>Empfohlen: Budget 1 € mit E-Mail-Warnung anlegen.</li>
         </ol>
       </details>
+      <section class="sec">
+        <div class="sh"><h3>Kostenlose Alternative: Mapillary</h3><span class="i" data-tip="Straßenfotos von Nutzern (viele vom Fahrrad aus) – kostenlos, ohne Kreditkarte. Abdeckung meist gut, manchmal Lücken oder ältere Bilder. In „Ansicht“ als „Mapillary“ wählbar.">i</span></div>
+        <div><label>Mapillary-Schlüssel (Client Token)</label><input type="password" id="iMlKey" autocomplete="off" placeholder="MLY|…"></div>
+        <ol class="steps"><li>Auf <a href="https://www.mapillary.com/dashboard/developers" target="_blank">mapillary.com → Developers</a> mit Facebook- oder Mapillary-Konto anmelden.</li><li>„Register application“: Name „Kurbeln“, Website https://www.kurbeln.com, Haken bei „Read“.</li><li>Den „Client Token“ (beginnt mit MLY|) hier einfügen.</li></ol>
+      </section>
       <div class="actions"><button class="primary" id="svDone">Fertig</button></div>
     </div>
   </div>
@@ -2785,6 +2792,7 @@ function tick() {
         toast(leg % 2 ? (KA_SUMMIT[route.id] || /Bergig/.test(routeTags(route)) ? 'Oben angekommen – jetzt geht es runter und dann wieder hoch.' : 'Ende der Strecke – es geht in Gegenrichtung zurück.') : 'Wieder am Start – auf ein Neues!', 5000); } }
     const sec = Math.floor(ride.elapsed);
     if (sec > ride.lastSec && settings.svOn) { svUpdate(); svAim(); }
+    if (sec > ride.lastSec && ml.on) mlUpdate();
     if (sec > ride.lastSec) { ride.lastSec = sec; recordSample(); controlTrainer(); }
     if (ride.elapsed - ride.lastSave > 60) { ride.lastSave = ride.elapsed; LS.set('kurbel.lastRide', Object.assign(rideRecord(), { done: false })); }
   }
@@ -3298,22 +3306,66 @@ function svActivate(on) {
     svInfoUpd(); sv.lastPano = sv.lastPano || null; svUpdate(true);
   }
 }
+// ---------- Mapillary: kostenlose Straßenfotos (MapillaryJS von unpkg, Bildsuche über die Graph-API, Schlüssel = Client Token) ----------
+const ml = { on: false, viewer: null, loading: null, lastD: -1e9, lastId: null, busy: false };
+const mlMsg = t => { $('#mlMsg').textContent = t; };
+function mlLoad() {
+  if (window.mapillary) return Promise.resolve();
+  if (ml.loading) return ml.loading;
+  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'https://unpkg.com/mapillary-js@4.1.2/dist/mapillary.css'; document.head.appendChild(css);
+  return (ml.loading = new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'https://unpkg.com/mapillary-js@4.1.2/dist/mapillary.js'; sc.onload = res; sc.onerror = () => { ml.loading = null; rej(new Error('Mapillary konnte nicht geladen werden')); }; document.head.appendChild(sc); }));
+}
+async function mlActivate(on) {
+  ml.on = on; if (!on) return;
+  if (!settings.mlKey) { mlMsg('Für Mapillary bitte unter „Connections → Google Street View“ den kostenlosen Mapillary-Schlüssel eintragen.'); return; }
+  if (!route.lat) { mlMsg('Diese Strecke hat keine Karte.'); return; }
+  try { await mlLoad(); } catch (e) { mlMsg(e.message); return; }
+  if (!ml.viewer) { try { ml.viewer = new mapillary.Viewer({ accessToken: settings.mlKey, container: 'mlView', component: { cover: false, bearing: false, sequence: false, zoom: false, direction: false } }); } catch (e) { mlMsg('Mapillary: ' + e.message); return; } }
+  else setTimeout(() => ml.viewer.resize(), 60);
+  ml.lastD = -1e9; mlUpdate();
+}
+// passendes Foto in der Nähe suchen: nah an der Position und möglichst in Fahrtrichtung aufgenommen
+async function mlUpdate() {
+  if (!ml.on || !ml.viewer || ml.busy || !route.lat) return;
+  const d = ride.distance; if (Math.abs(d - ml.lastD) < 25) return;
+  ml.busy = true; ml.lastD = d;
+  try {
+    const p = latLonAt(route, d), a = latLonAt(route, d + 40), brg = bearingDeg(p[0], p[1], a[0], a[1]), e = 0.0007;
+    const r = await fetch(`https://graph.mapillary.com/images?access_token=${encodeURIComponent(settings.mlKey)}&fields=id,computed_compass_angle,compass_angle,geometry&bbox=${(p[1] - e).toFixed(5)},${(p[0] - e).toFixed(5)},${(p[1] + e).toFixed(5)},${(p[0] + e).toFixed(5)}&limit=60`);
+    if (r.status === 401 || r.status === 403) { mlMsg('Mapillary-Schlüssel wird nicht akzeptiert – bitte prüfen.'); return; }
+    const js = await r.json(), list = js.data || [];
+    let best = null, bs = 1e9;
+    for (const im of list) {
+      const c = im.geometry?.coordinates; if (!c) continue;
+      const dist = havD({ lat: p[0], lon: p[1] }, { lat: c[1], lon: c[0] }), ang = im.computed_compass_angle ?? im.compass_angle ?? brg;
+      const da = Math.abs(((ang - brg) % 360 + 540) % 360 - 180), sc = dist + (da > 60 ? 200 : da);
+      if (sc < bs) { bs = sc; best = im; }
+    }
+    if (!best) { if (!ml.lastId) mlMsg('Hier gibt es noch keine Mapillary-Fotos – sobald welche da sind, erscheinen sie.'); return; }
+    mlMsg('');
+    if (best.id !== ml.lastId) { ml.lastId = best.id; await ml.viewer.moveTo(best.id).catch(() => {}); }
+  } catch (e) { mlMsg('Mapillary: ' + (e.message || e)); } finally { ml.busy = false; }
+}
+$('#iMlKey').addEventListener('change', e => { settings.mlKey = e.target.value.trim(); saveSettings(); if (ml.on) mlActivate(true); });
 // ---------- Ansichten frei anordnen: Haupt-Ansicht (groß) + optional eine daneben – je 2D-Karte, 3D oder Street View ----------
-const VIEWN = { '2d': '2D-Karte', '3d': '3D', sv: 'Street View', none: 'Aus' };
+const VIEWN = { '2d': '2D-Karte', '3d': '3D', sv: 'Street View', ml: 'Mapillary', none: 'Aus' };
 const isMountain = r => !!r && r.len > 0 && r.ascent / (r.len / 1000) >= 15; // wie Kennzeichnung „Bergig“
 const terrainKey = () => isMountain(route) ? 'mtn' : 'flat';
 // Ansicht für die aktuelle Strecke: zuletzt gewählte Anordnung für flache bzw. bergige Strecken (bergig: 3D groß, Karte daneben)
 // Standard seit 8.8 (Wunsch von Max): 3D groß + Street View daneben; ohne Google-Schlüssel statt Street View die 2D-Karte
 function layoutForRoute() {
   if (settings.layoutV !== 2) { settings.layouts = {}; settings.layoutV = 2; }
-  const L = (settings.layouts ||= {}), l = L[terrainKey()] || { main: '3d', side: 'sv' }, noSv = v => v === 'sv' && !settings.gKey;
-  applyLayout(noSv(l.main) ? '3d' : l.main, noSv(l.side) ? (l.main === '2d' ? 'none' : '2d') : l.side);
+  // ohne Google-Schlüssel: Mapillary (falls eingerichtet), sonst 2D-Karte
+  const L = (settings.layouts ||= {}), l = L[terrainKey()] || { main: '3d', side: 'sv' }, alt = settings.mlKey ? 'ml' : '2d';
+  const fix = v => v === 'sv' && !settings.gKey ? alt : v === 'ml' && !settings.mlKey ? '2d' : v;
+  let mn = fix(l.main), sd = fix(l.side); if (sd === mn) sd = mn === '2d' ? 'none' : '2d';
+  applyLayout(mn, sd, true);
 }
-function applyLayout(main, side) {
+function applyLayout(main, side, auto) {
   if (!VIEWN[main] || main === 'none') main = '2d'; if (!VIEWN[side] || side === main) side = 'none';
-  settings.viewMain = main; settings.viewSide = side; (settings.layouts ||= {})[terrainKey()] = { main, side }; saveSettings();
+  settings.viewMain = main; settings.viewSide = side; if (!auto) (settings.layouts ||= {})[terrainKey()] = { main, side }; saveSettings(); // automatisch gewählte Anordnung nicht als Wunsch merken
   const st = $('#stage'); st.dataset.main = main; st.dataset.side = side; st.classList.toggle('split', side !== 'none');
-  svActivate(main === 'sv' || side === 'sv'); v3Activate(main === '3d' || side === '3d');
+  svActivate(main === 'sv' || side === 'sv'); v3Activate(main === '3d' || side === '3d'); mlActivate(main === 'ml' || side === 'ml');
   $('#btnSV').classList.toggle('on', !!settings.svOn); $('#btn3D').classList.toggle('on', v3.on); $('#btnView').classList.toggle('on', side !== 'none' || main !== '2d');
   st.classList.toggle('no2d', main !== '2d' && side !== '2d');
   setTimeout(() => { if (map) { map.invalidateSize(); if ((ride.state === 'running' || ride.state === 'paused') && follow && route.lat) map.panTo(latLonAt(route, ride.distance), { animate: false }); } v3.map?.resize(); }, 60);
@@ -3330,7 +3382,7 @@ $('#btnSV').onclick = () => toggleView('sv');
 $('#btn3D').onclick = () => toggleView('3d');
 function renderViewPick() {
   const m = settings.viewMain || '2d', sd = settings.viewSide || 'none', row = (k, opts, cur) => opts.map(o => `<button class="${o === cur ? 'on' : ''}" data-${k}="${o}">${VIEWN[o]}</button>`).join('');
-  $('#viewPick').innerHTML = `<small>Groß</small><div class="subcats">${row('vm', ['2d', '3d', 'sv'], m)}</div><small>Daneben</small><div class="subcats">${row('vs', ['none', '2d', '3d', 'sv'].filter(o => o !== m), sd)}</div>${sd !== 'none' ? '<button class="vswap" data-vswap="1">Seiten tauschen</button>' : ''}<small>3D-Farben</small><div class="subcats"><button class="${settings.v3Color !== true ? 'on' : ''}" data-vc="0">Kurbeln-Look</button><button class="${settings.v3Color === true ? 'on' : ''}" data-vc="1">Echte Farben</button></div>`;
+  $('#viewPick').innerHTML = `<small>Groß</small><div class="subcats">${row('vm', ['2d', '3d', 'sv', 'ml'], m)}</div><small>Daneben</small><div class="subcats">${row('vs', ['none', '2d', '3d', 'sv', 'ml'].filter(o => o !== m), sd)}</div>${sd !== 'none' ? '<button class="vswap" data-vswap="1">Seiten tauschen</button>' : ''}<small>3D-Farben</small><div class="subcats"><button class="${settings.v3Color !== true ? 'on' : ''}" data-vc="0">Kurbeln-Look</button><button class="${settings.v3Color === true ? 'on' : ''}" data-vc="1">Echte Farben</button></div>`;
   $('#viewPick').querySelectorAll('[data-vc]').forEach(b => b.onclick = () => { settings.v3Color = b.dataset.vc === '1'; saveSettings(); v3Look(); renderViewPick(); });
   $('#viewPick').querySelectorAll('[data-vm]').forEach(b => b.onclick = () => applyLayout(b.dataset.vm, sd === b.dataset.vm ? m : sd));
   $('#viewPick').querySelectorAll('[data-vs]').forEach(b => b.onclick = () => applyLayout(m, b.dataset.vs));
@@ -3645,7 +3697,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') connDD.class
 ['#btnTrainer', '#btnPM', '#btnHR', '#btnDemo'].forEach(id => $(id).addEventListener('click', () => setTimeout(updConnServices, 50)));
 $('#btnConnStrava').onclick = () => { connDD.classList.remove('open'); openStrava(); };
 $('#btnConnGarmin').onclick = () => { connDD.classList.remove('open'); $('#garminDlg').style.display = 'flex'; };
-$('#btnConnSV').onclick = () => { connDD.classList.remove('open'); svInfoUpd(); $('#svDlg').style.display = 'flex'; };
+$('#btnConnSV').onclick = () => { connDD.classList.remove('open'); svInfoUpd(); $('#iMlKey').value = settings.mlKey || ''; $('#svDlg').style.display = 'flex'; };
 $('#svDone').onclick = () => { $('#svDlg').style.display = 'none'; updConnServices(); };
 $('#garminDone').onclick = () => { $('#garminDlg').style.display = 'none'; };
 ['#svDlg', '#garminDlg'].forEach(id => $(id).addEventListener('click', e => { if (e.target.id === id.slice(1)) e.currentTarget.style.display = 'none'; }));
